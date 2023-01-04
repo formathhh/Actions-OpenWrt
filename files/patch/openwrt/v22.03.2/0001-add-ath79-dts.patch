@@ -109,7 +109,7 @@ index 0000000..0e99d0a
 +		compatible = "gpio-leds";
 +
 +		wlan {
-+			label = "tp-link:green:wlan";
++			label = "green:wlan";
 +			gpios = <&ath9k 1 GPIO_ACTIVE_LOW>;
 +			linux,default-trigger = "phy0tpt";
 +		};
@@ -378,8 +378,8 @@ index 0000000..8f0fa6a
 +#include <dt-bindings/input/input.h>
 +
 +/ {
-+    compatible = "tplink,tl-wr845n-v3", "qca,qca9533";
-+    model = "TP-Link TL-WR845N v3";
++	compatible = "tplink,tl-wr845n-v3", "qca,qca9533";
++	model = "TP-Link TL-WR845N v3";
 +
 +	aliases {
 +		led-boot = &led_qss;
@@ -545,8 +545,8 @@ index 0000000..e064bb3
 +	leds {
 +		compatible = "gpio-leds";
 +
-+		led_system: power_green {
-+			label = "green:power";
++		led_system: system {
++			label = "green:system";
 +			gpios = <&gpio 25 GPIO_ACTIVE_LOW>;
 +			default-state = "on";
 +		};
@@ -709,16 +709,16 @@ index 0000000..5568765
 +#include <dt-bindings/input/input.h>
 +
 +/ {
-+    compatible = "tplink,tl-wr886n-v2", "qca,tp9343";
-+    model = "TP-Link TL-WR886N v2";
++	compatible = "tplink,tl-wr886n-v2", "qca,tp9343";
++	model = "TP-Link TL-WR886N v2";
 +
-+    aliases {
++	aliases {
 +		led-boot = &led_system;
 +		led-failsafe = &led_system;
 +		led-running = &led_system;
 +		led-upgrade = &led_system;
 +		label-mac-device = &wmac;
-+    };
++	};
 +
 +	leds {
 +		compatible = "gpio-leds";
