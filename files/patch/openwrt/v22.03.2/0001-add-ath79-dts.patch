@@ -1,4 +1,4 @@
-From 68095995b20a8af58814c43899dfa01d12601689 Mon Sep 17 00:00:00 2001
+From d5096391108f0f6cd748f1f2a3f9fc15aa30a470 Mon Sep 17 00:00:00 2001
 From: a520a <a520ass@hotmail.com>
 Date: Wed, 4 Jan 2023 11:24:17 +0800
 Subject: [PATCH] add ath79 dts
@@ -10,10 +10,10 @@ Subject: [PATCH] add ath79 dts
  .../ath79/dts/qca9558_netgear_jnr3300-v1.dts  | 172 ++++++++++++++++++
  .../ath79/dts/tp9343_tplink_tl-wr886n-v2.dts  | 136 ++++++++++++++
  .../generic/base-files/etc/board.d/01_leds    |  22 ++-
- .../generic/base-files/etc/board.d/02_network |  19 +-
+ .../generic/base-files/etc/board.d/02_network |  22 ++-
  .../etc/hotplug.d/firmware/10-ath9k-eeprom    |   3 +
  target/linux/ath79/image/generic-tp-link.mk   |  52 ++++++
- 9 files changed, 881 insertions(+), 2 deletions(-)
+ 9 files changed, 884 insertions(+), 2 deletions(-)
  create mode 100644 target/linux/ath79/dts/ar7240_tplink_tl-wr941n-v5-cn.dts
  create mode 100644 target/linux/ath79/dts/ar9331_mercury_mw150r-v10.dts
  create mode 100644 target/linux/ath79/dts/qca9533_tplink_tl-wr845n-v3.dts
@@ -22,7 +22,7 @@ Subject: [PATCH] add ath79 dts
 
 diff --git a/target/linux/ath79/dts/ar7240_tplink_tl-wr941n-v5-cn.dts b/target/linux/ath79/dts/ar7240_tplink_tl-wr941n-v5-cn.dts
 new file mode 100644
-index 0000000..0e99d0a
+index 0000000..2886aa4
 --- /dev/null
 +++ b/target/linux/ath79/dts/ar7240_tplink_tl-wr941n-v5-cn.dts
 @@ -0,0 +1,172 @@
@@ -200,7 +200,7 @@ index 0000000..0e99d0a
 +};
 diff --git a/target/linux/ath79/dts/ar9331_mercury_mw150r-v10.dts b/target/linux/ath79/dts/ar9331_mercury_mw150r-v10.dts
 new file mode 100644
-index 0000000..954f08b
+index 0000000..6eada33
 --- /dev/null
 +++ b/target/linux/ath79/dts/ar9331_mercury_mw150r-v10.dts
 @@ -0,0 +1,160 @@
@@ -366,7 +366,7 @@ index 0000000..954f08b
 +};
 diff --git a/target/linux/ath79/dts/qca9533_tplink_tl-wr845n-v3.dts b/target/linux/ath79/dts/qca9533_tplink_tl-wr845n-v3.dts
 new file mode 100644
-index 0000000..8f0fa6a
+index 0000000..df003b8
 --- /dev/null
 +++ b/target/linux/ath79/dts/qca9533_tplink_tl-wr845n-v3.dts
 @@ -0,0 +1,147 @@
@@ -519,7 +519,7 @@ index 0000000..8f0fa6a
 +};
 diff --git a/target/linux/ath79/dts/qca9558_netgear_jnr3300-v1.dts b/target/linux/ath79/dts/qca9558_netgear_jnr3300-v1.dts
 new file mode 100644
-index 0000000..e064bb3
+index 0000000..fa904c4
 --- /dev/null
 +++ b/target/linux/ath79/dts/qca9558_netgear_jnr3300-v1.dts
 @@ -0,0 +1,172 @@
@@ -697,7 +697,7 @@ index 0000000..e064bb3
 +};
 diff --git a/target/linux/ath79/dts/tp9343_tplink_tl-wr886n-v2.dts b/target/linux/ath79/dts/tp9343_tplink_tl-wr886n-v2.dts
 new file mode 100644
-index 0000000..5568765
+index 0000000..6964eba
 --- /dev/null
 +++ b/target/linux/ath79/dts/tp9343_tplink_tl-wr886n-v2.dts
 @@ -0,0 +1,136 @@
@@ -878,10 +878,10 @@ index 8b4c83f..bb7ca72 100644
  	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x10"
  	ucidef_set_led_switch "lan2" "LAN2" "green:lan2" "switch0" "0x08"
 diff --git a/target/linux/ath79/generic/base-files/etc/board.d/02_network b/target/linux/ath79/generic/base-files/etc/board.d/02_network
-index 4d3296c..f0aed9c 100644
+index 4d3296c..acc2db8 100644
 --- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
 +++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
-@@ -8,6 +8,15 @@ ath79_setup_interfaces()
+@@ -8,6 +8,20 @@ ath79_setup_interfaces()
  	local board="$1"
  
  	case "$board" in
@@ -894,40 +894,36 @@ index 4d3296c..f0aed9c 100644
 +		ucidef_add_switch "switch0" \
 +			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 +		;;
- 	adtran,bsap1800-v2|\
- 	adtran,bsap1840|\
- 	allnet,all-wap02860ac|\
-@@ -170,7 +179,9 @@ ath79_setup_interfaces()
- 	tplink,archer-c60-v3|\
- 	tplink,tl-wdr3500-v1|\
- 	tplink,tl-wr842n-v1|\
--	tplink,tl-wr842n-v3)
-+ 	tplink,tl-wr842n-v3|\
-+	tplink,tl-wr845n-v3|\
-+	tplink,tl-wr886n-v2)
- 		ucidef_set_interface_wan "eth1"
- 		ucidef_add_switch "switch0" \
- 			"0@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
-@@ -345,6 +356,7 @@ ath79_setup_interfaces()
- 	tplink,tl-wdr3600-v1|\
- 	tplink,tl-wdr4300-v1|\
- 	tplink,tl-wdr4300-v1-il|\
-+	netgear,jnr3300-v1|\
- 	tplink,tl-wdr4310-v1)
- 		ucidef_add_switch "switch0" \
- 			"0@eth0" "2:lan:1" "3:lan:2" "4:lan:3" "5:lan:4" "1:wan"
-@@ -392,6 +404,11 @@ ath79_setup_interfaces()
- 		ucidef_add_switch "switch0" \
- 			"0@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
- 		;;
 +	tplink,tl-wr941n-v5-cn)
 +		ucidef_set_interface_wan "eth0"
 +		ucidef_add_switch "switch0" \
 +		"0@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
 +		;;
- 	phicomm,k2t)
+ 	adtran,bsap1800-v2|\
+ 	adtran,bsap1840|\
+ 	allnet,all-wap02860ac|\
+@@ -170,7 +184,9 @@ ath79_setup_interfaces()
+ 	tplink,archer-c60-v3|\
+ 	tplink,tl-wdr3500-v1|\
+ 	tplink,tl-wr842n-v1|\
+-	tplink,tl-wr842n-v3)
++	tplink,tl-wr842n-v3|\
++	tplink,tl-wr845n-v3|\
++	tplink,tl-wr886n-v2)
+ 		ucidef_set_interface_wan "eth1"
  		ucidef_add_switch "switch0" \
- 			"0@eth0" "3:lan:1" "5:lan:2" "4:wan"
+ 			"0@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
+@@ -522,6 +538,10 @@ ath79_setup_macs()
+ 	local board="$1"
+ 
+ 	case "$board" in
++	netgear,jnr3300-v1)
++		base_mac=$(mtd_get_mac_binary u-boot 0x1fc00)
++		wan_mac=$(macaddr_add "$base_mac" 1)
++		;;
+ 	adtran,bsap1800-v2|\
+ 	adtran,bsap1840)
+ 		lan_mac=$(mtd_get_mac_binary "Board data" 2)
 diff --git a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/10-ath9k-eeprom b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/10-ath9k-eeprom
 index f3b435e..5c4b4c4 100644
 --- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/10-ath9k-eeprom
