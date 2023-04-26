@@ -1,0 +1,42 @@
+From 66ff5618e63e8ed16cf1b8251253a445548d8ac2 Mon Sep 17 00:00:00 2001
+From: Nikita Travkin <nikita@trvn.ru>
+Date: Sat, 14 Jan 2023 22:45:47 +0500
+Subject: [PATCH] modemmanager: Allow qcom-soc modems
+
+qcom-soc is a special case modem on devices where it is part of the SoC,
+which is the case on some Qualcomm chipsets.
+Don't fail if the device field is set to this value.
+
+Signed-off-by: Nikita Travkin <nikita@trvn.ru>
+---
+ net/modemmanager/Makefile                 | 2 +-
+ net/modemmanager/files/modemmanager.proto | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/modemmanager/Makefile b/net/modemmanager/Makefile
+index 6cbd6f7383e1..dad2fdd52203 100644
+--- a/net/modemmanager/Makefile
++++ b/net/modemmanager/Makefile
+@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=modemmanager
+ PKG_SOURCE_VERSION:=1.20.2
+-PKG_RELEASE:=1
++PKG_RELEASE:=2
+ 
+ PKG_SOURCE_PROTO:=git
+ PKG_SOURCE_URL:=https://gitlab.freedesktop.org/mobile-broadband/ModemManager.git
+diff --git a/net/modemmanager/files/modemmanager.proto b/net/modemmanager/files/modemmanager.proto
+index e6ec9e2030d7..187d5cd2172f 100755
+--- a/net/modemmanager/files/modemmanager.proto
++++ b/net/modemmanager/files/modemmanager.proto
+@@ -368,7 +368,8 @@ proto_modemmanager_setup() {
+ 		proto_set_available "${interface}" 0
+ 		return 1
+ 	}
+-	[ -e "${device}" ] || {
++	# "qcom-soc" is a special case on devices where modem is part of the SoC.
++	[ -e "${device}" ] || [ "${device}" = "qcom-soc" ] || {
+ 		echo "Device not found in sysfs"
+ 		proto_set_available "${interface}" 0
+ 		return 1
