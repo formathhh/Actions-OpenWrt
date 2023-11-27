@@ -25,11 +25,11 @@ on:
       repo_branch:
         description: 'REPO BRANCH'
         required: true
-        default: 'v22.03.2'
+        default: 'v23.05.2'
       patch_version:
         description: 'PATCH VERSION'
         required: true
-        default: 'v22.03.2'
+        default: 'v23.05.2'
       config_file:
         description: 'CONFIG FILE'
         required: true
@@ -37,11 +37,11 @@ on:
       p1_sh:
         description: 'DIY P1 SH'
         required: true
-        default: 'diy-part1.sh'        
+        default: 'diy-part1.sh'
       p2_sh:
-        description: 'DIY P2 SH'
+        description: 'DIY P2 SH (OR PATCH)'
         required: true
-        default: 'diy-part2.sh'
+        default: 'diy-patch.sh'
 
 env:
   REPO_URL: ${{ inputs.repo_url }}
