@@ -1,0 +1,25 @@
+From 7fe239c843e3db6506c1343421d494cc8992288a Mon Sep 17 00:00:00 2001
+From: a520a <a520ass@hotmail.com>
+Date: Mon, 20 Jan 2025 17:20:34 +0800
+Subject: [PATCH 3/5] up
+
+---
+ target/linux/msm89xx/image/msm8916.mk | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/target/linux/msm89xx/image/msm8916.mk b/target/linux/msm89xx/image/msm8916.mk
+index b9580b3..22aa09c 100644
+--- a/target/linux/msm89xx/image/msm8916.mk
++++ b/target/linux/msm89xx/image/msm8916.mk
+@@ -21,5 +21,6 @@ define Device/thwc-ufi001c
+ 	DEVICE_MODEL := ufi001c
+ 	SOC := msm8916
+ 	ROOT_BLKDEV := "/dev/mmcblk0p14"
++	CMDLINE := "earlycon console=ttyMSM0,115200 root=/dev/mmcblk0p14 rw rootwait"
+ endef
+-TARGET_DEVICES += thwc-ufi001c
+\ No newline at end of file
++TARGET_DEVICES += thwc-ufi001c
+-- 
+2.43.0
+

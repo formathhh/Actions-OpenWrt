@@ -1,0 +1,2607 @@
+From f2854190c57bff1c430ec0a8563fe9ec8311643b Mon Sep 17 00:00:00 2001
+From: a520a <a520ass@hotmail.com>
+Date: Sun, 19 Jan 2025 19:47:17 +0800
+Subject: [PATCH 1/5] msm8916
+
+---
+ package/kernel/linux/modules/netdevices.mk    |  30 +
+ package/kernel/mac80211/ath.mk                |  22 +-
+ package/tmp/qrtr/Makefile                     |  58 ++
+ package/tmp/rmtfs/Makefile                    |  44 +
+ package/tmp/rmtfs/files/rmtfs.init            |  23 +
+ target/linux/msm89xx/Makefile                 |  25 +
+ .../msm89xx/base-files/etc/board.d/02_network |  19 +
+ .../base-files/etc/init.d/mount_firmware      |  10 +
+ .../base-files/etc/init.d/uim_selection       | 101 ++
+ .../msm89xx/base-files/etc/init.d/usb_network |  74 ++
+ .../lib/firmware/msm-firmware-loader/.keep    |   0
+ .../wlan/prima/WCNSS_qcom_wlan_nv.bin         | Bin 0 -> 29816 bytes
+ .../base-files/sbin/msm-firmware-loader.sh    | 132 +++
+ target/linux/msm89xx/config-6.6               | 907 ++++++++++++++++++
+ target/linux/msm89xx/image/Makefile           |  44 +
+ target/linux/msm89xx/image/msm8916.mk         |  25 +
+ target/linux/msm89xx/modules.mk               |  60 ++
+ target/linux/msm89xx/msm8916/target.mk        |   8 +
+ ...sm8916-thwc-Add-initial-device-trees.patch | 399 ++++++++
+ ...sm8916-Reduce-reserved-memory-for-ve.patch |  32 +
+ ...sm8916-Place-wcnss-venus-memory-next.patch |  81 ++
+ ...ts-qcom-msm8916-longcheer-l8150-Enab.patch |  69 ++
+ ...qcom_bam_dmux-Track-the-device-stats.patch | 105 ++
+ 23 files changed, 2265 insertions(+), 3 deletions(-)
+ create mode 100644 package/tmp/qrtr/Makefile
+ create mode 100644 package/tmp/rmtfs/Makefile
+ create mode 100755 package/tmp/rmtfs/files/rmtfs.init
+ create mode 100644 target/linux/msm89xx/Makefile
+ create mode 100755 target/linux/msm89xx/base-files/etc/board.d/02_network
+ create mode 100755 target/linux/msm89xx/base-files/etc/init.d/mount_firmware
+ create mode 100755 target/linux/msm89xx/base-files/etc/init.d/uim_selection
+ create mode 100755 target/linux/msm89xx/base-files/etc/init.d/usb_network
+ create mode 100644 target/linux/msm89xx/base-files/lib/firmware/msm-firmware-loader/.keep
+ create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin
+ create mode 100755 target/linux/msm89xx/base-files/sbin/msm-firmware-loader.sh
+ create mode 100644 target/linux/msm89xx/config-6.6
+ create mode 100644 target/linux/msm89xx/image/Makefile
+ create mode 100644 target/linux/msm89xx/image/msm8916.mk
+ create mode 100644 target/linux/msm89xx/modules.mk
+ create mode 100644 target/linux/msm89xx/msm8916/target.mk
+ create mode 100644 target/linux/msm89xx/patches-6.1/101-arm64-dts-qcom-msm8916-thwc-Add-initial-device-trees.patch
+ create mode 100644 target/linux/msm89xx/patches-6.1/901-arm64-dts-qcom-msm8916-Reduce-reserved-memory-for-ve.patch
+ create mode 100644 target/linux/msm89xx/patches-6.1/902-arm64-dts-qcom-msm8916-Place-wcnss-venus-memory-next.patch
+ create mode 100644 target/linux/msm89xx/patches-6.1/903-REVERTME-arm64-dts-qcom-msm8916-longcheer-l8150-Enab.patch
+ create mode 100644 target/linux/msm89xx/patches-6.1/913-net-wwan-qcom_bam_dmux-Track-the-device-stats.patch
+
+diff --git a/package/kernel/linux/modules/netdevices.mk b/package/kernel/linux/modules/netdevices.mk
+index 247f378..a66dbd0 100644
+--- a/package/kernel/linux/modules/netdevices.mk
++++ b/package/kernel/linux/modules/netdevices.mk
+@@ -1927,6 +1927,36 @@ endef
+ 
+ $(eval $(call KernelPackage,mhi-wwan-mbim))
+ 
++define KernelPackage/rpmsg-wwan-ctrl
++  SUBMENU:=$(NETWORK_DEVICES_MENU)
++  TITLE:=RPMSG WWAN Control
++  DEPENDS:=@LINUX_6_6 +kmod-wwan
++  KCONFIG:=CONFIG_RPMSG_WWAN_CTRL
++  FILES:=$(LINUX_DIR)/drivers/net/wwan/rpmsg_wwan_ctrl.ko
++  AUTOLOAD:=$(call AutoProbe,rpmsg_wwan_ctrl)
++endef
++
++define KernelPackage/rpmsg-wwan-ctrl/description
++ Driver for RPMSG WWAN Control
++ This exposes all modem control ports like AT, QMI that use RPMSG
++endef
++
++$(eval $(call KernelPackage,rpmsg-wwan-ctrl))
++
++define KernelPackage/bam-dmux
++  SUBMENU:=$(NETWORK_DEVICES_MENU)
++  TITLE:=Qualcomm BAM-DMUX WWAN network driver
++  DEPENDS:=@TARGET_msm89xx +kmod-wwan
++  KCONFIG:=CONFIG_QCOM_BAM_DMUX
++  FILES:=$(LINUX_DIR)/drivers/net/wwan/qcom_bam_dmux.ko
++  AUTOLOAD:=$(call AutoProbe,qcom_bam_dmux)
++endef
++
++define KernelPackage/bam-dmux/description
++  Kernel modules for Qualcomm BAM-DMUX WWAN interface
++endef
++
++$(eval $(call KernelPackage,bam-dmux))
+ 
+ define KernelPackage/mtk-t7xx
+   SUBMENU:=$(NETWORK_DEVICES_MENU)
+diff --git a/package/kernel/mac80211/ath.mk b/package/kernel/mac80211/ath.mk
+index 5b13b6a..54e23fe 100644
+--- a/package/kernel/mac80211/ath.mk
++++ b/package/kernel/mac80211/ath.mk
+@@ -1,6 +1,6 @@
+ PKG_DRIVERS += \
+ 	ath ath5k ath6kl ath6kl-sdio ath6kl-usb ath9k ath9k-common ath9k-htc ath10k ath10k-smallbuffers \
+-	ath11k ath11k-ahb ath11k-pci ath12k carl9170 owl-loader ar5523 wil6210 qcom-qmi-helpers
++	ath11k ath11k-ahb ath11k-pci ath12k carl9170 owl-loader ar5523 wil6210 wcn36xx qcom-qmi-helpers
+ 
+ PKG_CONFIG_DEPENDS += \
+ 	CONFIG_PACKAGE_ATH_DEBUG \
+@@ -25,7 +25,8 @@ ifdef CONFIG_PACKAGE_MAC80211_DEBUGFS
+ 	CARL9170_DEBUGFS \
+ 	ATH5K_DEBUG \
+ 	ATH6KL_DEBUG \
+-	WIL6210_DEBUGFS
++	WIL6210_DEBUGFS \
++	WCN36XX_DEBUGFS
+ endif
+ 
+ ifdef CONFIG_PACKAGE_MAC80211_TRACING
+@@ -50,6 +51,7 @@ config-$(call config_package,ath9k-common) += ATH9K_COMMON
+ config-$(call config_package,owl-loader) += ATH9K_PCI_NO_EEPROM
+ config-$(CONFIG_TARGET_ath79) += ATH9K_AHB
+ config-$(CONFIG_TARGET_ipq40xx) += ATH10K_AHB
++config-$(CONFIG_TARGET_msm89xx) += WCN36XX
+ config-$(CONFIG_PCI) += ATH9K_PCI
+ config-$(CONFIG_ATH_USER_REGD) += ATH_USER_REGD ATH_REG_DYNAMIC_USER_REG_HINTS
+ config-$(CONFIG_ATH9K_HWRNG) += ATH9K_HWRNG
+@@ -140,7 +142,7 @@ endef
+ define KernelPackage/ath
+   $(call KernelPackage/mac80211/Default)
+   TITLE:=Atheros common driver part
+-  DEPENDS+= @PCI_SUPPORT||USB_SUPPORT||TARGET_ath79 +kmod-mac80211
++  DEPENDS+= @PCI_SUPPORT||USB_SUPPORT||TARGET_ath79||TARGET_msm89xx +kmod-mac80211
+   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath.ko
+   MENU:=1
+ endef
+@@ -372,6 +374,20 @@ This module adds support for Qualcomm Technologies 802.11be family of
+ chipsets with PCI bus.
+ endef
+ 
++define KernelPackage/wcn36xx
++  $(call KernelPackage/mac80211/Default)
++  TITLE:=Qualcomm Atheros WCN3660/3680 support
++  URL:=https://wireless.wiki.kernel.org/en/users/drivers/wcn36xx
++  DEPENDS+= @TARGET_msm89xx +kmod-ath +kmod-qcom-rproc-wcnss
++  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/ath/wcn36xx/wcn36xx.ko
++  AUTOLOAD:=$(call AutoProbe,wcn36xx)
++endef
++
++define KernelPackage/wcn36xx/description
++This module adds support for Qualcomm Atheros WCN3660/3680 Wireless
++blocks in some Qualcomm SoCs
++endef
++
+ define KernelPackage/carl9170
+   $(call KernelPackage/mac80211/Default)
+   TITLE:=Driver for Atheros AR9170 USB sticks
+diff --git a/package/tmp/qrtr/Makefile b/package/tmp/qrtr/Makefile
+new file mode 100644
+index 0000000..1d09ba7
+--- /dev/null
++++ b/package/tmp/qrtr/Makefile
+@@ -0,0 +1,58 @@
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=qrtr
++PKG_VERSION:=0.3+git20230105
++PKG_RELEASE:=1
++_COMMIT:=a4398c8bf271f90338f95e1230373dde977d9cff
++
++PKG_BUILD_DIR:=$(BUILD_DIR)/qrtr-$(_COMMIT)
++PKG_SOURCE:=$(_COMMIT).tar.gz
++PKG_SOURCE_URL:=https://github.com/andersson/qrtr/archive/
++PKG_HASH:=29b22c4b763b07b7234babb0e6423c99a8016099e3fa4a3c8706d847c8ad7c16
++
++PKG_LICENSE:=BSD-3-Clause
++
++include $(INCLUDE_DIR)/package.mk
++
++define Package/qrtr-lib
++	SECTION:=libs
++	CATEGORY:=Libraries
++	TITLE:=Userspace reference for net/qrtr in the Linux kernel
++	URL:=https://github.com/andersson/qrtr
++endef
++
++define Package/qrtr
++	SECTION:=base
++	CATEGORY:=Network
++	DEPENDS:=+qrtr-lib
++	TITLE:=Various qrtr utilities
++	URL:=https://github.com/andersson/qrtr
++endef
++
++define Build/Compile
++	$(call Build/Compile/Default,prefix=/usr all)
++endef
++
++define Build/Install
++	$(call Build/Install/Default,prefix=/usr DESTDIR="$(PKG_INSTALL_DIR)" install)
++endef
++
++define Build/InstallDev
++	$(INSTALL_DIR) $(1)/usr/include
++	$(CP) $(PKG_INSTALL_DIR)/usr/include/libqrtr.h $(1)/usr/include/
++	$(INSTALL_DIR) $(1)/usr/lib
++	$(CP) $(PKG_INSTALL_DIR)/usr/lib/* $(1)/usr/lib/
++endef
++
++define Package/qrtr-lib/install
++	$(INSTALL_DIR) $(1)/usr/lib
++	$(CP) $(PKG_INSTALL_DIR)/usr/lib/* $(1)/usr/lib/
++endef
++
++define Package/qrtr/install
++	$(INSTALL_DIR) $(1)/usr/bin
++	$(CP) $(PKG_INSTALL_DIR)/usr/bin/qrtr-* $(1)/usr/bin/
++endef
++
++$(eval $(call BuildPackage,qrtr-lib))
++$(eval $(call BuildPackage,qrtr))
+diff --git a/package/tmp/rmtfs/Makefile b/package/tmp/rmtfs/Makefile
+new file mode 100644
+index 0000000..446bf74
+--- /dev/null
++++ b/package/tmp/rmtfs/Makefile
+@@ -0,0 +1,44 @@
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=rmtfs
++PKG_VERSION:=0.2+git20220718
++PKG_RELEASE:=1
++_COMMIT:=695d0668ffa6e2a4bf6e676f3c58a444a5d67690
++
++PKG_BUILD_DIR:=$(BUILD_DIR)/rmtfs-$(_COMMIT)
++PKG_SOURCE:=$(_COMMIT).tar.gz
++PKG_SOURCE_URL:=https://github.com/andersson/rmtfs/archive/
++PKG_HASH:=aa76b14d86b3508ba4d9389dbcad9ccfb2857334bfd1fd20c437e8671c834f28
++
++PKG_LICENSE:=BSD-3-Clause
++
++include $(INCLUDE_DIR)/package.mk
++
++define Package/rmtfs
++	SECTION:=base
++	CATEGORY:=Network
++	DEPENDS:=+qrtr-lib +libudev-zero
++	TITLE:=Qualcomm Remote Filesystem Service Implementation 
++	URL:=https://github.com/andersson/rmtfs
++endef
++
++define Package/rmtfs/description
++	Qualcomm RMTFS daemon. This service boots up the modem core
++	and provides it access to the modem data partitions.
++	This service is essential to boot the modem remoteproc.
++endef
++
++define Build/Compile
++	$(call Build/Compile/Default,rmtfs)
++endef
++
++Build/Install:=:
++
++define Package/rmtfs/install
++	$(INSTALL_DIR) $(1)/usr/sbin
++	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rmtfs $(1)/usr/sbin/
++	$(INSTALL_DIR) $(1)/etc/init.d
++	$(INSTALL_BIN) ./files/rmtfs.init $(1)/etc/init.d/rmtfs
++endef
++
++$(eval $(call BuildPackage,rmtfs))
+diff --git a/package/tmp/rmtfs/files/rmtfs.init b/package/tmp/rmtfs/files/rmtfs.init
+new file mode 100755
+index 0000000..3a27f5d
+--- /dev/null
++++ b/package/tmp/rmtfs/files/rmtfs.init
+@@ -0,0 +1,23 @@
++#!/bin/sh /etc/rc.common
++
++USE_PROCD=1
++START=25
++
++# FIXME: rmtfs expects these from udev
++populate_disk_labels() {
++	mkdir -p /dev/disk/by-partlabel/
++
++	for part in /sys/block/mmcblk*/mmcblk*p*
++	do
++		DEVNAME="$(grep DEVNAME "$part"/uevent | sed 's/DEVNAME=//g')"
++		PARTNAME="$(grep PARTNAME "$part"/uevent | sed 's/PARTNAME=//g')"
++		ln -s /dev/$DEVNAME /dev/disk/by-partlabel/$PARTNAME
++	done
++}
++
++start_service() {
++	populate_disk_labels
++      	procd_open_instance
++      	procd_set_param command /usr/sbin/rmtfs -P -r -s
++      	procd_close_instance
++}
+diff --git a/target/linux/msm89xx/Makefile b/target/linux/msm89xx/Makefile
+new file mode 100644
+index 0000000..5574325
+--- /dev/null
++++ b/target/linux/msm89xx/Makefile
+@@ -0,0 +1,25 @@
++# SPDX-License-Identifier: GPL-2.0-only
++
++include $(TOPDIR)/rules.mk
++
++BOARD:=msm89xx
++BOARDNAME:=Boards based on Snapdragon 210/410/615 chipsets
++FEATURES:=ext4 usb usbgadget gpio fpu rootfs-part boot-part squashfs separate_ramdisk
++SUBTARGETS:=msm8916
++
++KERNEL_PATCHVER:=6.6
++
++define Target/Description
++	Build firmware images for various Snapdragon 210/410/615 based devices
++endef
++
++include $(INCLUDE_DIR)/target.mk
++
++DEFAULT_PACKAGES += partx-utils e2fsprogs mkf2fs
++DEFAULT_PACKAGES += kmod-usb-chipidea kmod-usb-gadget-eth
++DEFAULT_PACKAGES += kmod-wcn36xx kmod-rproc-wcnss
++DEFAULT_PACKAGES += kmod-rpmsg-wwan-ctrl kmod-bam-dmux kmod-qcom-rproc-modem
++
++KERNELNAME:=Image
++
++$(eval $(call BuildTarget))
+diff --git a/target/linux/msm89xx/base-files/etc/board.d/02_network b/target/linux/msm89xx/base-files/etc/board.d/02_network
+new file mode 100755
+index 0000000..a6de1e1
+--- /dev/null
++++ b/target/linux/msm89xx/base-files/etc/board.d/02_network
+@@ -0,0 +1,19 @@
++#
++# Copyright (C) 2014-2015 OpenWrt.org
++#
++
++. /lib/functions/uci-defaults.sh
++
++board_config_update
++
++case "$(board_name)" in
++
++*)
++	ucidef_set_interface_lan "usb0"
++	;;
++
++esac
++
++board_config_flush
++
++exit 0
+diff --git a/target/linux/msm89xx/base-files/etc/init.d/mount_firmware b/target/linux/msm89xx/base-files/etc/init.d/mount_firmware
+new file mode 100755
+index 0000000..e78ffbd
+--- /dev/null
++++ b/target/linux/msm89xx/base-files/etc/init.d/mount_firmware
+@@ -0,0 +1,10 @@
++#!/bin/sh /etc/rc.common
++
++# This should run before boot service so the firmware is available
++# when the kernel modules that need it are loaded.
++START=09
++
++start() {
++	/sbin/msm-firmware-loader.sh
++}
++
+diff --git a/target/linux/msm89xx/base-files/etc/init.d/uim_selection b/target/linux/msm89xx/base-files/etc/init.d/uim_selection
+new file mode 100755
+index 0000000..f521301
+--- /dev/null
++++ b/target/linux/msm89xx/base-files/etc/init.d/uim_selection
+@@ -0,0 +1,101 @@
++#!/bin/sh /etc/rc.common
++
++# This script tries to automatically configure UIM application for Qualcomm QMI
++# modems with more than one sim slot.
++
++# Adapted from pmOS:
++# https://gitlab.com/postmarketOS/pmaports/-/blob/master/modem/msm-modem/msm-modem-uim-selection.initd
++
++eend() { echo $@; }
++veinfo() { echo $@; }
++ewarn() { echo $@; }
++
++# Must run after rmtfs but before ModemManager
++START=30
++
++start() {
++	case "$(cat /sys/devices/soc0/machine)" in
++	APQ*)
++		eend 0 'Skipping SIM configuration on APQ SoC.'
++		return 0
++	esac
++
++	# libqmi must be present to use this script.
++	if ! [ -x "$(command -v qmicli)" ]
++	then
++		eend 1 'qmicli is not installed.'
++		return 1
++	fi
++
++	# Prepare a qmicli command with desired modem path.
++	# The modem may appear after some delay, wait for it.
++	count=0
++	while [ -z "$QMICLI_MODEM" ] && [ "$count" -lt "45" ]
++	do
++		# Check if legacy rpmsg exported device exists.
++		if [ -e "/dev/modem" ]
++		then
++			QMICLI_MODEM="qmicli --silent -d /dev/modem"
++			veinfo "Using /dev/modem"
++		# Check if the qmi device from wwan driver exists.
++		elif [ -e "/dev/wwan0qmi0" ]
++		then
++			# Using --device-open-qmi flag as we may have libqmi
++			# version that can't automatically detect the type yet.
++			QMICLI_MODEM="qmicli --silent -d /dev/wwan0qmi0 --device-open-qmi"
++			veinfo "Using /dev/wwan0qmi0"
++		# Check if QRTR is available for new devices.
++		elif qmicli --silent -pd qrtr://0 --uim-noop > /dev/null
++		then
++			QMICLI_MODEM="qmicli --silent -pd qrtr://0"
++			veinfo "Using qrtr://0"
++		fi
++		sleep 1
++		count=$((count+1))
++	done
++	veinfo "Waited $count seconds for modem device to appear"
++
++	if [ -z "$QMICLI_MODEM" ]
++	then
++		eend 2 'No modem available.'
++		return 2
++	fi
++
++	QMI_CARDS=$($QMICLI_MODEM --uim-get-card-status)
++
++	# Fail if all slots are empty but wait a bit for the sim to appear.
++	count=0
++	while ! printf "%s" "$QMI_CARDS" | grep -Fq "Card state: 'present'"
++	do
++		if [ "$count" -ge "$sim_wait_time" ]
++		then
++			eend 4 "No sim detected after $sim_wait_time seconds."
++			return 4
++		fi
++
++		sleep 1
++		count=$((count+1))
++		QMI_CARDS=$($QMICLI_MODEM --uim-get-card-status)
++	done
++	veinfo "Waited $count seconds for modem to come up"
++
++	# Clear the selected application in case the modem is in a bugged state
++	if ! printf "%s" "$QMI_CARDS" | grep -Fq "Primary GW:   session doesn't exist"
++	then
++		ewarn 'Application was already selected.'
++		$QMICLI_MODEM --uim-change-provisioning-session='activate=no,session-type=primary-gw-provisioning' > /dev/null
++        fi
++
++	# Extract first available slot number and AID for usim application
++	# on it. This should select proper slot out of two if only one UIM is
++	# present or select the first one if both slots have UIM's in them.
++	FIRST_PRESENT_SLOT=$(printf "%s" "$QMI_CARDS" | grep "Card state: 'present'" -m1 -B1 | head -n1 | cut -c7-7)
++	FIRST_PRESENT_AID=$(printf "%s" "$QMI_CARDS" | grep "usim (2)" -m1 -A3 | tail -n1 | awk '{print $1}')
++
++	veinfo "Selecting $FIRST_PRESENT_AID on slot $FIRST_PRESENT_SLOT"
++
++	# Finally send the new configuration to the modem.
++	$QMICLI_MODEM --uim-change-provisioning-session="slot=$FIRST_PRESENT_SLOT,activate=yes,session-type=primary-gw-provisioning,aid=$FIRST_PRESENT_AID" > /dev/null
++	eend $?
++}
++
+diff --git a/target/linux/msm89xx/base-files/etc/init.d/usb_network b/target/linux/msm89xx/base-files/etc/init.d/usb_network
+new file mode 100755
+index 0000000..2b7b3b6
+--- /dev/null
++++ b/target/linux/msm89xx/base-files/etc/init.d/usb_network
+@@ -0,0 +1,74 @@
++#!/bin/sh /etc/rc.common
++# SPDX-License-Identifier: GPL-2.0-or-later
++
++# This file is based on postmarketOS initfs code.
++# See: https://gitlab.com/postmarketOS/pmaports/-/blob/master/main/postmarketos-mkinitfs/
++
++START=20
++
++deviceinfo_manufacturer="Generic"
++deviceinfo_usb_serialnumber="123456"
++
++setup_usb_network_configfs() {
++	# See: https://www.kernel.org/doc/Documentation/usb/gadget_configfs.txt
++	CONFIGFS=/sys/kernel/config/usb_gadget
++
++	if ! [ -e "$CONFIGFS" ]; then
++		echo "  /config/usb_gadget does not exist, skipping configfs usb gadget"
++		return
++	fi
++
++	# Default values for USB-related deviceinfo variables
++	usb_idVendor="${deviceinfo_usb_idVendor:-0x18D1}"   # default: Google Inc.
++	usb_idProduct="${deviceinfo_usb_idProduct:-0xD001}" # default: Nexus 4 (fastboot)
++	usb_serialnumber="${deviceinfo_usb_serialnumber:-OpenWRT}"
++	usb_rndis_function="${deviceinfo_usb_rndis_function:-rndis.usb0}"
++
++	echo "  Setting up an USB gadget through configfs"
++	# Create an usb gadet configuration
++	mkdir $CONFIGFS/g1 || echo "  Couldn't create $CONFIGFS/g1"
++	echo "$usb_idVendor"  > "$CONFIGFS/g1/idVendor"
++	echo "$usb_idProduct" > "$CONFIGFS/g1/idProduct"
++
++	# Create english (0x409) strings
++	mkdir $CONFIGFS/g1/strings/0x409 || echo "  Couldn't create $CONFIGFS/g1/strings/0x409"
++
++	# shellcheck disable=SC2154
++	echo "$deviceinfo_manufacturer" > "$CONFIGFS/g1/strings/0x409/manufacturer"
++	echo "$usb_serialnumber"        > "$CONFIGFS/g1/strings/0x409/serialnumber"
++	# shellcheck disable=SC2154
++	echo "$deviceinfo_name"         > "$CONFIGFS/g1/strings/0x409/product"
++
++	# Create rndis function. The function can be named differently in downstream kernels.
++	mkdir $CONFIGFS/g1/functions/"$usb_rndis_function" \
++		|| echo "  Couldn't create $CONFIGFS/g1/functions/$usb_rndis_function"
++
++	# Create configuration instance for the gadget
++	mkdir $CONFIGFS/g1/configs/c.1 \
++		|| echo "  Couldn't create $CONFIGFS/g1/configs/c.1"
++	mkdir $CONFIGFS/g1/configs/c.1/strings/0x409 \
++		|| echo "  Couldn't create $CONFIGFS/g1/configs/c.1/strings/0x409"
++	echo "rndis" > $CONFIGFS/g1/configs/c.1/strings/0x409/configuration \
++		|| echo "  Couldn't write configration name"
++
++	# Link the rndis instance to the configuration
++	ln -s $CONFIGFS/g1/functions/"$usb_rndis_function" $CONFIGFS/g1/configs/c.1 \
++		|| echo "  Couldn't symlink $usb_rndis_function"
++
++	# Check if there's an USB Device Controller
++	if [ -z "$(ls /sys/class/udc)" ]; then
++		echo "  No USB Device Controller available"
++		return
++	fi
++
++	# Link the gadget instance to an USB Device Controller. This activates the gadget.
++	# See also: https://github.com/postmarketOS/pmbootstrap/issues/338
++	# shellcheck disable=SC2005
++	echo "$(ls /sys/class/udc)" > $CONFIGFS/g1/UDC || echo "  Couldn't write UDC"
++}
++
++start() {
++	mount -t configfs none /sys/kernel/config
++	setup_usb_network_configfs
++}
++
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/msm-firmware-loader/.keep b/target/linux/msm89xx/base-files/lib/firmware/msm-firmware-loader/.keep
+new file mode 100644
+index 0000000..e69de29
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin b/target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin
+new file mode 100644
+index 0000000000000000000000000000000000000000..88f18cb3491a9e90c88fcb96d1bc58ba5d36691f
+GIT binary patch
+literal 29816
+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
+Juy8Hy_#cR!TMGaH
+
+literal 0
+HcmV?d00001
+
+diff --git a/target/linux/msm89xx/base-files/sbin/msm-firmware-loader.sh b/target/linux/msm89xx/base-files/sbin/msm-firmware-loader.sh
+new file mode 100755
+index 0000000..bb21ff1
+--- /dev/null
++++ b/target/linux/msm89xx/base-files/sbin/msm-firmware-loader.sh
+@@ -0,0 +1,132 @@
++#!/bin/sh
++# SPDX-License-Identifier: MIT
++
++#
++# This script is responsible for loading firmware blobs from firmware
++# partitions on qcom devices. It will make a dir in tmp, mount all of the
++# interesting partitions there and then symlink blobs to a single dir that can
++# be then provided to the kernel. (At this time only single additional
++# directory can be provided)
++#
++# This script attempts to load everything at runtime and be as generic
++# as possible between the target devices: It should allow a single rootfs
++# to be used on multiple different devices as long as all the blobs
++# are present on dedicated partitions.
++# (Usually the case, Samsung devices ship all blobs, other devices may miss
++# venus but that still allows for WiFi and modem to work)
++#
++
++# Configurations:
++
++# List of partitions to be mounted and inspected for blobs.
++FW_PARTITIONS="
++	apnhlos
++	modem
++"
++
++# Base dirrectory to be used to unfold the partitions into.
++BASEDIR="/lib/firmware/msm-firmware-loader"
++
++# Preparations:
++
++# This script is intended to run before udev. This means that writeable fs
++# May not be available yet. Since this script only creates symlinks, it
++# uses tmpfs to work around the early-run limitations as well as to reduce
++# disk wear slightly.
++mount -o mode=755,nodev,noexec,nosuid -t tmpfs none "$BASEDIR"
++
++mkdir "$BASEDIR/mnt"
++mkdir "$BASEDIR/target"
++
++# Scanning and mounting partitions we're interested in:
++
++# /dev/disk/by-partlabel symlinks don't exist yet, scan sysfs for names instead
++for part in /sys/block/mmcblk*/mmcblk*p*
++do
++	DEVNAME="$(grep DEVNAME "$part"/uevent | sed 's/DEVNAME=//g')"
++	PARTNAME="$(grep PARTNAME "$part"/uevent | sed 's/PARTNAME=//g')"
++
++	if [ -z "${FW_PARTITIONS##*"$PARTNAME"*}" ] && [ -n "$PARTNAME" ]
++	then
++		mkdir "$BASEDIR/mnt/$PARTNAME"
++		mount -o ro,nodev,noexec,nosuid \
++			"/dev/$DEVNAME" "$BASEDIR/mnt/$PARTNAME"
++	fi
++done
++
++# Linking blobs from all partitions:
++
++# Backup the preselected path, link all of the installed blobs.
++# This is needed for devices that require blobs either not present
++# on the partitions (e.g. venus on many msm8916 devices) or if
++# the device has secure-boot disabled and can run newer blobs.
++EXTRA_PATH="$(cat /sys/module/firmware_class/parameters/path)"
++
++if [ -d "$EXTRA_PATH" ]
++then
++	for blob in "$EXTRA_PATH"/*
++	do
++		if ! [ -e "$blob" ]; then break; fi
++		ln -s "$blob" "$BASEDIR/target/$(basename "$blob")"
++	done
++fi
++
++# Scan through mounted partitions and symlink all of the blobs.
++# This loop ignores blobs with names already present in the
++# target to allow preinstalled blobs to override ones in the partitions.
++for blob in "$BASEDIR"/mnt/*/image/*
++do
++	BLOBBASE="${blob##*/}"
++	BLOBBASE="${BLOBBASE%.*}"
++
++	# Skip blob prefix if it's already present.
++	for prefix in "$BASEDIR/target/$BLOBBASE."*
++	do
++		if [ -e "$prefix" ]; then continue 2; fi
++	done
++
++	for part in "$BASEDIR"/mnt/*/image/"$BLOBBASE"*
++	do
++		ln -s "$part" "$BASEDIR/target/$(basename "$part")"
++	done
++done
++
++# Fixup the directory structure:
++
++# venus (video encoder/decoder) blobs are expected to be in a subdir.
++# Re-link the blobs if the venus firmware wasn't already preinstalled.
++# Different platforms expect firmware in different subdirs
++# (as in linux-firmware-qcom) so the venus dir is duplicated multiple times
++# under possible names for the scritpt to be generic without complex detection.
++
++if [ -f "$BASEDIR/target/venus.mdt" ] && ! [ -d "$BASEDIR/target/qcom" ]
++then
++	mkdir -p "$BASEDIR/target/qcom/venus-x"
++	for part in "$BASEDIR"/target/venus.*
++	do
++		ln -s "$part" "$BASEDIR/target/qcom/venus-x/$(basename "$part")"
++	done
++fi
++
++VENUS_DIRS="
++	venus-1.8
++	venus-3.0
++	venus-4.2
++	venus-5.2
++	venus-5.4
++	vpu-1.0
++	vpu-2.0
++"
++
++for vdir in $VENUS_DIRS
++do
++	if ! [ -d "$BASEDIR/target/qcom/$vdir" ] && [ -f "$BASEDIR/target/venus.mdt" ]
++	then
++		ln -s "$BASEDIR/target/qcom/venus-x" \
++			"$BASEDIR/target/qcom/$vdir"
++	fi
++done
++
++# Set the new custom firmware path:
++printf "%s" "$BASEDIR/target" > /sys/module/firmware_class/parameters/path
++
+diff --git a/target/linux/msm89xx/config-6.6 b/target/linux/msm89xx/config-6.6
+new file mode 100644
+index 0000000..11f724a
+--- /dev/null
++++ b/target/linux/msm89xx/config-6.6
+@@ -0,0 +1,907 @@
++CONFIG_64BIT=y
++# CONFIG_APQ_GCC_8084 is not set
++# CONFIG_APQ_MMCC_8084 is not set
++CONFIG_ARCH_BINFMT_ELF_EXTRA_PHDRS=y
++CONFIG_ARCH_CORRECT_STACKTRACE_ON_KRETPROBE=y
++CONFIG_ARCH_DMA_ADDR_T_64BIT=y
++CONFIG_ARCH_HIBERNATION_POSSIBLE=y
++CONFIG_ARCH_KEEP_MEMBLOCK=y
++CONFIG_ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE=y
++CONFIG_ARCH_MMAP_RND_BITS=18
++CONFIG_ARCH_MMAP_RND_BITS_MAX=33
++CONFIG_ARCH_MMAP_RND_BITS_MIN=18
++CONFIG_ARCH_MMAP_RND_COMPAT_BITS=11
++CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MIN=11
++CONFIG_ARCH_NR_GPIO=0
++CONFIG_ARCH_PROC_KCORE_TEXT=y
++CONFIG_ARCH_QCOM=y
++CONFIG_ARCH_SPARSEMEM_ENABLE=y
++CONFIG_ARCH_STACKWALK=y
++CONFIG_ARCH_SUSPEND_POSSIBLE=y
++CONFIG_ARCH_WANTS_NO_INSTR=y
++CONFIG_ARCH_WANTS_THP_SWAP=y
++CONFIG_ARM64=y
++CONFIG_ARM64_4K_PAGES=y
++# CONFIG_ARM64_CNP is not set
++CONFIG_ARM64_ERRATUM_819472=y
++CONFIG_ARM64_ERRATUM_824069=y
++CONFIG_ARM64_ERRATUM_826319=y
++CONFIG_ARM64_ERRATUM_827319=y
++CONFIG_ARM64_ERRATUM_843419=y
++CONFIG_ARM64_ERRATUM_845719=y
++CONFIG_ARM64_ERRATUM_858921=y
++CONFIG_ARM64_LD_HAS_FIX_ERRATUM_843419=y
++CONFIG_ARM64_PAGE_SHIFT=12
++CONFIG_ARM64_PA_BITS=48
++CONFIG_ARM64_PA_BITS_48=y
++# CONFIG_ARM64_SW_TTBR0_PAN is not set
++CONFIG_ARM64_TAGGED_ADDR_ABI=y
++CONFIG_ARM64_VA_BITS=48
++# CONFIG_ARM64_VA_BITS_39 is not set
++CONFIG_ARM64_VA_BITS_48=y
++CONFIG_ARM64_WORKAROUND_CLEAN_CACHE=y
++# CONFIG_ARMV8_DEPRECATED is not set
++CONFIG_ARM_AMBA=y
++CONFIG_ARM_ARCH_TIMER=y
++CONFIG_ARM_ARCH_TIMER_EVTSTREAM=y
++CONFIG_ARM_ARCH_TIMER_OOL_WORKAROUND=y
++CONFIG_ARM_GIC=y
++CONFIG_ARM_GIC_V3=y
++CONFIG_ARM_GIC_V3_ITS=y
++# CONFIG_ARM_MHU_V2 is not set
++CONFIG_ARM_PSCI_CPUIDLE=y
++CONFIG_ARM_PSCI_CPUIDLE_DOMAIN=y
++CONFIG_ARM_PSCI_FW=y
++# CONFIG_ARM_QCOM_CPUFREQ_HW is not set
++CONFIG_ARM_QCOM_CPUFREQ_NVMEM=y
++CONFIG_ARM_SMCCC_SOC_ID=y
++CONFIG_ARM_SMMU=y
++CONFIG_ARM_SMMU_DISABLE_BYPASS_BY_DEFAULT=y
++# CONFIG_ARM_SMMU_LEGACY_DT_BINDINGS is not set
++CONFIG_ARM_SMMU_QCOM=y
++# CONFIG_ARM_SMMU_QCOM_DEBUG is not set
++# CONFIG_ARM_SMMU_V3 is not set
++CONFIG_ASN1=y
++CONFIG_ASSOCIATIVE_ARRAY=y
++CONFIG_ASYMMETRIC_KEY_TYPE=y
++CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE=y
++CONFIG_AUDIT_ARCH_COMPAT_GENERIC=y
++CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
++CONFIG_BACKLIGHT_CLASS_DEVICE=y
++CONFIG_BACKLIGHT_PWM=y
++CONFIG_BLK_DEBUG_FS=y
++CONFIG_BLK_DEV_LOOP=y
++CONFIG_BLK_DEV_SD=y
++CONFIG_BLK_MQ_VIRTIO=y
++CONFIG_BLK_PM=y
++CONFIG_BLOCK_COMPAT=y
++CONFIG_BLOCK_LEGACY_AUTOLOAD=y
++CONFIG_BPF_JIT_ALWAYS_ON=y
++CONFIG_BSD_PROCESS_ACCT=y
++CONFIG_BSD_PROCESS_ACCT_V3=y
++CONFIG_CC_HAVE_SHADOW_CALL_STACK=y
++CONFIG_CC_HAVE_STACKPROTECTOR_SYSREG=y
++CONFIG_CC_IMPLICIT_FALLTHROUGH="-Wimplicit-fallthrough=5"
++CONFIG_CC_NO_ARRAY_BOUNDS=y
++CONFIG_CLONE_BACKWARDS=y
++CONFIG_CLZ_TAB=y
++CONFIG_CMA=y
++CONFIG_CMA_ALIGNMENT=8
++CONFIG_CMA_AREAS=7
++# CONFIG_CMA_DEBUG is not set
++# CONFIG_CMA_DEBUGFS is not set
++CONFIG_CMA_SIZE_MBYTES=16
++# CONFIG_CMA_SIZE_SEL_MAX is not set
++CONFIG_CMA_SIZE_SEL_MBYTES=y
++# CONFIG_CMA_SIZE_SEL_MIN is not set
++# CONFIG_CMA_SIZE_SEL_PERCENTAGE is not set
++# CONFIG_CMA_SYSFS is not set
++CONFIG_COMMON_CLK=y
++CONFIG_COMMON_CLK_QCOM=y
++CONFIG_COMPACT_UNEVICTABLE_DEFAULT=1
++CONFIG_COMPAT=y
++CONFIG_COMPAT_32BIT_TIME=y
++# CONFIG_COMPAT_ALIGNMENT_FIXUPS is not set
++CONFIG_COMPAT_BINFMT_ELF=y
++CONFIG_COMPAT_OLD_SIGACTION=y
++CONFIG_CONFIGFS_FS=y
++CONFIG_CONSOLE_TRANSLATIONS=y
++CONFIG_CONTEXT_TRACKING=y
++CONFIG_CONTEXT_TRACKING_IDLE=y
++CONFIG_CONTIG_ALLOC=y
++CONFIG_COREDUMP=y
++CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS=y
++CONFIG_CPUFREQ_DT=y
++CONFIG_CPUFREQ_DT_PLATDEV=y
++CONFIG_CPU_FREQ=y
++# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set
++CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y
++CONFIG_CPU_FREQ_GOV_ATTR_SET=y
++# CONFIG_CPU_FREQ_GOV_CONSERVATIVE is not set
++# CONFIG_CPU_FREQ_GOV_ONDEMAND is not set
++CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
++CONFIG_CPU_FREQ_GOV_POWERSAVE=y
++CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y
++# CONFIG_CPU_FREQ_GOV_USERSPACE is not set
++CONFIG_CPU_FREQ_STAT=y
++CONFIG_CPU_FREQ_THERMAL=y
++CONFIG_CPU_IDLE=y
++CONFIG_CPU_IDLE_GOV_MENU=y
++CONFIG_CPU_IDLE_MULTIPLE_DRIVERS=y
++CONFIG_CPU_ISOLATION=y
++CONFIG_CPU_LITTLE_ENDIAN=y
++CONFIG_CPU_PM=y
++CONFIG_CPU_RMAP=y
++CONFIG_CPU_THERMAL=y
++CONFIG_CRC16=y
++# CONFIG_CRC32_SARWATE is not set
++CONFIG_CRC32_SLICEBY8=y
++CONFIG_CROSS_MEMORY_ATTACH=y
++CONFIG_CRYPTO_AES_ARM64=y
++CONFIG_CRYPTO_AES_ARM64_BS=y
++CONFIG_CRYPTO_AES_ARM64_CE=y
++CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
++CONFIG_CRYPTO_AES_ARM64_CE_CCM=y
++CONFIG_CRYPTO_AES_ARM64_NEON_BLK=y
++CONFIG_CRYPTO_ANSI_CPRNG=y
++CONFIG_CRYPTO_AUTHENC=y
++CONFIG_CRYPTO_CBC=y
++CONFIG_CRYPTO_CMAC=y
++CONFIG_CRYPTO_CRC32C=y
++CONFIG_CRYPTO_DEFLATE=y
++CONFIG_CRYPTO_DEV_QCE=y
++CONFIG_CRYPTO_DEV_QCE_AEAD=y
++# CONFIG_CRYPTO_DEV_QCE_ENABLE_AEAD is not set
++CONFIG_CRYPTO_DEV_QCE_ENABLE_ALL=y
++# CONFIG_CRYPTO_DEV_QCE_ENABLE_SHA is not set
++# CONFIG_CRYPTO_DEV_QCE_ENABLE_SKCIPHER is not set
++CONFIG_CRYPTO_DEV_QCE_SHA=y
++CONFIG_CRYPTO_DEV_QCE_SKCIPHER=y
++CONFIG_CRYPTO_DEV_QCE_SW_MAX_LEN=512
++CONFIG_CRYPTO_DEV_QCOM_RNG=y
++CONFIG_CRYPTO_DRBG=y
++CONFIG_CRYPTO_DRBG_HMAC=y
++CONFIG_CRYPTO_DRBG_MENU=y
++CONFIG_CRYPTO_ECB=y
++CONFIG_CRYPTO_ECC=y
++CONFIG_CRYPTO_ECDH=y
++CONFIG_CRYPTO_GHASH_ARM64_CE=y
++CONFIG_CRYPTO_HASH_INFO=y
++CONFIG_CRYPTO_HMAC=y
++CONFIG_CRYPTO_HW=y
++CONFIG_CRYPTO_JITTERENTROPY=y
++CONFIG_CRYPTO_LIB_BLAKE2S_GENERIC=y
++CONFIG_CRYPTO_LIB_DES=y
++CONFIG_CRYPTO_LIB_SHA1=y
++CONFIG_CRYPTO_LIB_SHA256=y
++CONFIG_CRYPTO_LIB_UTILS=y
++# CONFIG_CRYPTO_PCRYPT is not set
++CONFIG_CRYPTO_RNG=y
++CONFIG_CRYPTO_RNG2=y
++CONFIG_CRYPTO_RNG_DEFAULT=y
++CONFIG_CRYPTO_RSA=y
++CONFIG_CRYPTO_SHA1=y
++CONFIG_CRYPTO_SHA1_ARM64_CE=y
++CONFIG_CRYPTO_SHA256=y
++CONFIG_CRYPTO_SHA256_ARM64=y
++CONFIG_CRYPTO_SHA2_ARM64_CE=y
++CONFIG_CRYPTO_SHA512=y
++CONFIG_CRYPTO_SHA512_ARM64=y
++CONFIG_CRYPTO_SHA512_ARM64_CE=y
++CONFIG_CRYPTO_XTS=y
++CONFIG_CRYPTO_ZSTD=y
++CONFIG_DCACHE_WORD_ACCESS=y
++CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_REDUCED=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_DECOMPRESS_BZIP2=y
++CONFIG_DECOMPRESS_GZIP=y
++CONFIG_DECOMPRESS_LZ4=y
++CONFIG_DECOMPRESS_LZMA=y
++CONFIG_DECOMPRESS_LZO=y
++CONFIG_DECOMPRESS_XZ=y
++CONFIG_DECOMPRESS_ZSTD=y
++# CONFIG_DEVFREQ_GOV_PASSIVE is not set
++# CONFIG_DEVFREQ_GOV_PERFORMANCE is not set
++# CONFIG_DEVFREQ_GOV_POWERSAVE is not set
++CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND=y
++# CONFIG_DEVFREQ_GOV_USERSPACE is not set
++# CONFIG_DEVFREQ_THERMAL is not set
++CONFIG_DEV_COREDUMP=y
++CONFIG_DMADEVICES=y
++CONFIG_DMA_CMA=y
++CONFIG_DMA_DIRECT_REMAP=y
++CONFIG_DMA_ENGINE=y
++CONFIG_DMA_OF=y
++CONFIG_DMA_OPS=y
++CONFIG_DMA_SHARED_BUFFER=y
++CONFIG_DMA_VIRTUAL_CHANNELS=y
++CONFIG_DNOTIFY=y
++CONFIG_DST_CACHE=y
++CONFIG_DTC=y
++CONFIG_DT_IDLE_GENPD=y
++CONFIG_DT_IDLE_STATES=y
++CONFIG_DUMMY_CONSOLE=y
++CONFIG_EDAC_SUPPORT=y
++CONFIG_ELF_CORE=y
++# CONFIG_EMBEDDED is not set
++CONFIG_EXCLUSIVE_SYSTEM_RAM=y
++# CONFIG_EXPERT is not set
++CONFIG_EXT4_FS=y
++CONFIG_EXTCON=y
++CONFIG_EXTCON_QCOM_SPMI_MISC=y
++CONFIG_EXTCON_SM5502=y
++CONFIG_EXTCON_USB_GPIO=y
++CONFIG_FANOTIFY=y
++CONFIG_FAT_FS=y
++CONFIG_FB=y
++CONFIG_FB_CMDLINE=y
++CONFIG_FHANDLE=y
++# CONFIG_FIPS_SIGNATURE_SELFTEST is not set
++CONFIG_FIX_EARLYCON_MEM=y
++CONFIG_FONT_8x16=y
++CONFIG_FONT_8x8=y
++CONFIG_FONT_SUPPORT=y
++# CONFIG_FORTIFY_SOURCE is not set
++CONFIG_FRAMEBUFFER_CONSOLE=y
++CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
++CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
++CONFIG_FRAME_POINTER=y
++CONFIG_FSL_ERRATUM_A008585=y
++CONFIG_FS_IOMAP=y
++CONFIG_FS_MBCACHE=y
++# CONFIG_FW_LOADER_USER_HELPER is not set
++CONFIG_GARP=y
++CONFIG_GCC11_NO_ARRAY_BOUNDS=y
++CONFIG_GCC_PLUGINS=y
++# CONFIG_GCC_PLUGIN_LATENT_ENTROPY is not set
++# CONFIG_GCC_PLUGIN_STACKLEAK is not set
++CONFIG_GCC_SUPPORTS_DYNAMIC_FTRACE_WITH_REGS=y
++CONFIG_GENERIC_ALLOCATOR=y
++CONFIG_GENERIC_ARCH_TOPOLOGY=y
++CONFIG_GENERIC_BUG=y
++CONFIG_GENERIC_BUG_RELATIVE_POINTERS=y
++CONFIG_GENERIC_CLOCKEVENTS=y
++CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=y
++CONFIG_GENERIC_CPU_AUTOPROBE=y
++CONFIG_GENERIC_CPU_VULNERABILITIES=y
++CONFIG_GENERIC_CSUM=y
++CONFIG_GENERIC_EARLY_IOREMAP=y
++CONFIG_GENERIC_GETTIMEOFDAY=y
++CONFIG_GENERIC_IDLE_POLL_SETUP=y
++CONFIG_GENERIC_IOREMAP=y
++CONFIG_GENERIC_IRQ_EFFECTIVE_AFF_MASK=y
++CONFIG_GENERIC_IRQ_MIGRATION=y
++CONFIG_GENERIC_IRQ_SHOW=y
++CONFIG_GENERIC_IRQ_SHOW_LEVEL=y
++CONFIG_GENERIC_LIB_DEVMEM_IS_ALLOWED=y
++CONFIG_GENERIC_MSI_IRQ=y
++CONFIG_GENERIC_MSI_IRQ_DOMAIN=y
++CONFIG_GENERIC_PCI_IOMAP=y
++CONFIG_GENERIC_PHY=y
++CONFIG_GENERIC_PINCONF=y
++CONFIG_GENERIC_PINCTRL_GROUPS=y
++CONFIG_GENERIC_PINMUX_FUNCTIONS=y
++CONFIG_GENERIC_SCHED_CLOCK=y
++CONFIG_GENERIC_SMP_IDLE_THREAD=y
++CONFIG_GENERIC_STRNCPY_FROM_USER=y
++CONFIG_GENERIC_STRNLEN_USER=y
++CONFIG_GENERIC_TIME_VSYSCALL=y
++CONFIG_GLOB=y
++CONFIG_GPIOLIB_IRQCHIP=y
++CONFIG_GPIO_CDEV=y
++CONFIG_GPIO_CDEV_V1=y
++# CONFIG_HARDENED_USERCOPY is not set
++CONFIG_HARDIRQS_SW_RESEND=y
++CONFIG_HAS_DMA=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HID=y
++CONFIG_HID_A4TECH=y
++CONFIG_HID_APPLE=y
++CONFIG_HID_BELKIN=y
++CONFIG_HID_CHERRY=y
++CONFIG_HID_CHICONY=y
++CONFIG_HID_CYPRESS=y
++CONFIG_HID_EZKEY=y
++CONFIG_HID_GENERIC=y
++CONFIG_HID_ITE=y
++CONFIG_HID_KENSINGTON=y
++CONFIG_HID_LOGITECH=y
++CONFIG_HID_MICROSOFT=y
++CONFIG_HID_MONTEREY=y
++CONFIG_HID_REDRAGON=y
++CONFIG_HISILICON_ERRATUM_161010101=y
++CONFIG_HOTPLUG_CPU=y
++CONFIG_HUGETLBFS=y
++CONFIG_HUGETLB_PAGE=y
++CONFIG_HWMON=y
++# CONFIG_HWPOISON_INJECT is not set
++CONFIG_HWSPINLOCK=y
++CONFIG_HWSPINLOCK_QCOM=y
++CONFIG_HW_CONSOLE=y
++CONFIG_HZ=300
++# CONFIG_HZ_100 is not set
++CONFIG_HZ_300=y
++CONFIG_I2C=y
++CONFIG_I2C_ALGOBIT=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_COMPAT=y
++CONFIG_I2C_GPIO=y
++CONFIG_I2C_HELPER_AUTO=y
++CONFIG_I2C_MUX=y
++# CONFIG_I2C_QCOM_CCI is not set
++CONFIG_I2C_QUP=y
++CONFIG_IIO=y
++CONFIG_IIO_BUFFER=y
++CONFIG_IIO_KFIFO_BUF=y
++CONFIG_IIO_TRIGGER=y
++CONFIG_IIO_TRIGGERED_BUFFER=y
++CONFIG_IKCONFIG=y
++CONFIG_IKCONFIG_PROC=y
++CONFIG_ILLEGAL_POINTER_VALUE=0xdead000000000000
++CONFIG_INET_DIAG=y
++# CONFIG_INET_DIAG_DESTROY is not set
++# CONFIG_INET_RAW_DIAG is not set
++CONFIG_INET_TCP_DIAG=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_INPUT=y
++CONFIG_INPUT_EVDEV=y
++CONFIG_INPUT_FF_MEMLESS=y
++CONFIG_INPUT_KEYBOARD=y
++CONFIG_INPUT_LEDS=y
++CONFIG_INPUT_MOUSE=y
++CONFIG_INPUT_PM8941_PWRKEY=y
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_IOMMU_API=y
++# CONFIG_IOMMU_DEBUGFS is not set
++# CONFIG_IOMMU_DEFAULT_DMA_LAZY is not set
++CONFIG_IOMMU_DEFAULT_DMA_STRICT=y
++# CONFIG_IOMMU_DEFAULT_PASSTHROUGH is not set
++CONFIG_IOMMU_DMA=y
++CONFIG_IOMMU_IOVA=y
++CONFIG_IOMMU_IO_PGTABLE=y
++# CONFIG_IOMMU_IO_PGTABLE_ARMV7S is not set
++# CONFIG_IOMMU_IO_PGTABLE_DART is not set
++CONFIG_IOMMU_IO_PGTABLE_LPAE=y
++# CONFIG_IOMMU_IO_PGTABLE_LPAE_SELFTEST is not set
++CONFIG_IOMMU_SUPPORT=y
++CONFIG_IO_URING=y
++CONFIG_IPC_NS=y
++# CONFIG_IPQ_APSS_6018 is not set
++# CONFIG_IPQ_APSS_PLL is not set
++# CONFIG_IPQ_GCC_4019 is not set
++# CONFIG_IPQ_GCC_6018 is not set
++# CONFIG_IPQ_GCC_806X is not set
++# CONFIG_IPQ_GCC_8074 is not set
++# CONFIG_IPQ_LCC_806X is not set
++CONFIG_IPV6=y
++CONFIG_IPV6_MROUTE=y
++CONFIG_IPV6_MROUTE_MULTIPLE_TABLES=y
++CONFIG_IPV6_MULTIPLE_TABLES=y
++CONFIG_IPV6_PIMSM_V2=y
++CONFIG_IPV6_SEG6_BPF=y
++CONFIG_IPV6_SEG6_LWTUNNEL=y
++CONFIG_IPV6_SUBTREES=y
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_MROUTE=y
++CONFIG_IP_MROUTE_COMMON=y
++CONFIG_IP_PIMSM_V1=y
++CONFIG_IP_PIMSM_V2=y
++CONFIG_IRQCHIP=y
++CONFIG_IRQ_DOMAIN=y
++CONFIG_IRQ_DOMAIN_HIERARCHY=y
++CONFIG_IRQ_FASTEOI_HIERARCHY_HANDLERS=y
++CONFIG_IRQ_FORCED_THREADING=y
++CONFIG_IRQ_MSI_IOMMU=y
++CONFIG_IRQ_TIME_ACCOUNTING=y
++CONFIG_IRQ_WORK=y
++# CONFIG_ISDN is not set
++CONFIG_JBD2=y
++CONFIG_JUMP_LABEL=y
++CONFIG_KALLSYMS=y
++CONFIG_KALLSYMS_UNCOMPRESSED=y
++CONFIG_KEYBOARD_GPIO=y
++CONFIG_KEYS=y
++# CONFIG_KPSS_XCC is not set
++CONFIG_KSM=y
++# CONFIG_LEDS_BRIGHTNESS_HW_CHANGED is not set
++CONFIG_LEDS_GPIO=y
++CONFIG_LEDS_QCOM_LPG=y
++CONFIG_LEDS_TRIGGER_CPU=y
++CONFIG_LEDS_TRIGGER_PANIC=y
++CONFIG_LEGACY_PTYS=y
++CONFIG_LEGACY_PTY_COUNT=16
++CONFIG_LIBCRC32C=y
++CONFIG_LIBFDT=y
++CONFIG_LOCALVERSION="-msm8916"
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_LOCK_DEBUGGING_SUPPORT=y
++CONFIG_LOCK_SPIN_ON_OWNER=y
++CONFIG_LOGO=y
++CONFIG_LOGO_LINUX_CLUT224=y
++CONFIG_LOGO_LINUX_MONO=y
++CONFIG_LOGO_LINUX_VGA16=y
++CONFIG_LSM="landlock,lockdown,yama,loadpin,safesetid,integrity,bpf"
++CONFIG_LWTUNNEL=y
++# CONFIG_LWTUNNEL_BPF is not set
++CONFIG_LZ4_DECOMPRESS=y
++CONFIG_LZO_DECOMPRESS=y
++CONFIG_MAGIC_SYSRQ=y
++CONFIG_MAILBOX=y
++# CONFIG_MAILBOX_TEST is not set
++CONFIG_MD=y
++# CONFIG_MDM_GCC_9615 is not set
++# CONFIG_MDM_LCC_9615 is not set
++CONFIG_MEMFD_CREATE=y
++CONFIG_MEMORY_FAILURE=y
++CONFIG_MEMORY_ISOLATION=y
++# CONFIG_MFD_HI6421_SPMI is not set
++# CONFIG_MFD_QCOM_RPM is not set
++CONFIG_MFD_SPMI_PMIC=y
++CONFIG_MFD_SYSCON=y
++CONFIG_MIGRATION=y
++CONFIG_MMC=y
++CONFIG_MMC_BLOCK=y
++CONFIG_MMC_BLOCK_MINORS=32
++CONFIG_MMC_CQHCI=y
++CONFIG_MMC_SDHCI=y
++CONFIG_MMC_SDHCI_IO_ACCESSORS=y
++CONFIG_MMC_SDHCI_MSM=y
++CONFIG_MMC_SDHCI_PLTFM=y
++CONFIG_MODULES_USE_ELF_RELA=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++# CONFIG_MOUSE_BCM5974 is not set
++# CONFIG_MOUSE_CYAPA is not set
++# CONFIG_MOUSE_PS2 is not set
++# CONFIG_MOUSE_SERIAL is not set
++# CONFIG_MOUSE_VSXXXAA is not set
++CONFIG_MPILIB=y
++CONFIG_MQ_IOSCHED_DEADLINE=y
++CONFIG_MQ_IOSCHED_KYBER=y
++CONFIG_MRP=y
++# CONFIG_MSM_GCC_8660 is not set
++# CONFIG_MSM_GCC_8909 is not set
++CONFIG_MSM_GCC_8916=y
++CONFIG_MSM_GCC_8939=y
++# CONFIG_MSM_GCC_8960 is not set
++# CONFIG_MSM_GCC_8974 is not set
++# CONFIG_MSM_GCC_8976 is not set
++# CONFIG_MSM_GCC_8994 is not set
++# CONFIG_MSM_GCC_8996 is not set
++# CONFIG_MSM_GCC_8998 is not set
++# CONFIG_MSM_GPUCC_8998 is not set
++# CONFIG_MSM_LCC_8960 is not set
++# CONFIG_MSM_MMCC_8960 is not set
++# CONFIG_MSM_MMCC_8974 is not set
++# CONFIG_MSM_MMCC_8996 is not set
++# CONFIG_MSM_MMCC_8998 is not set
++# CONFIG_MTD is not set
++CONFIG_MUTEX_SPIN_ON_OWNER=y
++CONFIG_NAMESPACES=y
++CONFIG_NEED_DMA_MAP_STATE=y
++CONFIG_NEED_SG_DMA_LENGTH=y
++CONFIG_NETFILTER=y
++CONFIG_NETFILTER_ADVANCED=y
++CONFIG_NETFILTER_EGRESS=y
++CONFIG_NETFILTER_INGRESS=y
++CONFIG_NET_EGRESS=y
++CONFIG_NET_FLOW_LIMIT=y
++CONFIG_NET_INGRESS=y
++CONFIG_NET_NS=y
++CONFIG_NET_PTP_CLASSIFY=y
++# CONFIG_NET_SCHED is not set
++CONFIG_NET_VENDOR_ASIX=y
++CONFIG_NET_VENDOR_DAVICOM=y
++CONFIG_NET_VENDOR_ENGLEDER=y
++CONFIG_NET_VENDOR_FUNGIBLE=y
++CONFIG_NET_VENDOR_LITEX=y
++CONFIG_NET_VENDOR_MICROSOFT=y
++CONFIG_NET_VENDOR_VERTEXCOM=y
++CONFIG_NET_VENDOR_WANGXUN=y
++# CONFIG_NF_LOG_IPV6 is not set
++CONFIG_NLS=y
++CONFIG_NLS_CODEPAGE_437=y
++CONFIG_NLS_ISO8859_1=y
++CONFIG_NO_HZ_COMMON=y
++CONFIG_NO_HZ_IDLE=y
++CONFIG_NO_IOPORT_MAP=y
++CONFIG_NR_CPUS=8
++CONFIG_NVMEM=y
++CONFIG_NVMEM_QCOM_QFPROM=y
++# CONFIG_NVMEM_SPMI_SDAM is not set
++CONFIG_OF=y
++CONFIG_OF_ADDRESS=y
++CONFIG_OF_DYNAMIC=y
++CONFIG_OF_EARLY_FLATTREE=y
++CONFIG_OF_FLATTREE=y
++CONFIG_OF_GPIO=y
++CONFIG_OF_IOMMU=y
++CONFIG_OF_IRQ=y
++CONFIG_OF_KOBJ=y
++CONFIG_OF_OVERLAY=y
++CONFIG_OF_RESOLVE=y
++CONFIG_OID_REGISTRY=y
++CONFIG_OLD_SIGSUSPEND3=y
++# CONFIG_OVERLAY_FS_XINO_AUTO is not set
++CONFIG_PAGE_POOL=y
++CONFIG_PAGE_SIZE_LESS_THAN_256KB=y
++CONFIG_PAGE_SIZE_LESS_THAN_64KB=y
++# CONFIG_PANIC_ON_OOPS is not set
++CONFIG_PANIC_ON_OOPS_VALUE=0
++CONFIG_PANIC_TIMEOUT=0
++# CONFIG_PARTITION_ADVANCED is not set
++CONFIG_PARTITION_PERCPU=y
++CONFIG_PCPU_DEV_REFCNT=y
++CONFIG_PGTABLE_LEVELS=4
++CONFIG_PHYS_ADDR_T_64BIT=y
++# CONFIG_PHY_QCOM_APQ8064_SATA is not set
++# CONFIG_PHY_QCOM_EDP is not set
++# CONFIG_PHY_QCOM_IPQ4019_USB is not set
++# CONFIG_PHY_QCOM_IPQ806X_SATA is not set
++# CONFIG_PHY_QCOM_IPQ806X_USB is not set
++# CONFIG_PHY_QCOM_PCIE2 is not set
++# CONFIG_PHY_QCOM_QMP is not set
++# CONFIG_PHY_QCOM_QUSB2 is not set
++CONFIG_PHY_QCOM_USB_HS=y
++# CONFIG_PHY_QCOM_USB_HS_28NM is not set
++# CONFIG_PHY_QCOM_USB_SNPS_FEMTO_V2 is not set
++# CONFIG_PHY_QCOM_USB_SS is not set
++CONFIG_PID_NS=y
++CONFIG_PINCTRL=y
++# CONFIG_PINCTRL_IPQ6018 is not set
++# CONFIG_PINCTRL_IPQ8074 is not set
++CONFIG_PINCTRL_MSM=y
++CONFIG_PINCTRL_MSM8916=y
++# CONFIG_PINCTRL_MSM8976 is not set
++# CONFIG_PINCTRL_MSM8994 is not set
++# CONFIG_PINCTRL_MSM8996 is not set
++# CONFIG_PINCTRL_MSM8998 is not set
++# CONFIG_PINCTRL_QCM2290 is not set
++CONFIG_PINCTRL_QCOM_SPMI_PMIC=y
++# CONFIG_PINCTRL_QCOM_SSBI_PMIC is not set
++# CONFIG_PINCTRL_QCS404 is not set
++# CONFIG_PINCTRL_SC7180 is not set
++# CONFIG_PINCTRL_SC8280XP is not set
++# CONFIG_PINCTRL_SDM660 is not set
++# CONFIG_PINCTRL_SDM845 is not set
++# CONFIG_PINCTRL_SM6350 is not set
++# CONFIG_PINCTRL_SM6375 is not set
++# CONFIG_PINCTRL_SM8150 is not set
++# CONFIG_PINCTRL_SM8250 is not set
++# CONFIG_PINCTRL_SM8450 is not set
++CONFIG_PKCS7_MESSAGE_PARSER=y
++# CONFIG_PKCS8_PRIVATE_KEY_PARSER is not set
++CONFIG_PM=y
++CONFIG_PM8916_WATCHDOG=y
++CONFIG_PM_CLK=y
++CONFIG_PM_DEVFREQ=y
++# CONFIG_PM_DEVFREQ_EVENT is not set
++CONFIG_PM_GENERIC_DOMAINS=y
++CONFIG_PM_GENERIC_DOMAINS_OF=y
++CONFIG_PM_OPP=y
++CONFIG_POSIX_CPU_TIMERS_TASK_WORK=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_POSIX_MQUEUE_SYSCTL=y
++CONFIG_POWER_RESET=y
++CONFIG_POWER_RESET_MSM=y
++CONFIG_POWER_RESET_QCOM_PON=y
++CONFIG_POWER_SUPPLY=y
++CONFIG_POWER_SUPPLY_HWMON=y
++CONFIG_PPS=y
++CONFIG_PREEMPT=y
++CONFIG_PREEMPTION=y
++CONFIG_PREEMPT_BUILD=y
++CONFIG_PREEMPT_COUNT=y
++# CONFIG_PREEMPT_NONE is not set
++CONFIG_PREEMPT_RCU=y
++CONFIG_PRINTK_TIME=y
++CONFIG_PRINT_QUOTA_WARNING=y
++CONFIG_PROC_PAGE_MONITOR=y
++CONFIG_PSTORE=y
++CONFIG_PSTORE_COMPRESS=y
++CONFIG_PSTORE_COMPRESS_DEFAULT="deflate"
++CONFIG_PSTORE_CONSOLE=y
++CONFIG_PSTORE_DEFLATE_COMPRESS=y
++CONFIG_PSTORE_DEFLATE_COMPRESS_DEFAULT=y
++CONFIG_PSTORE_PMSG=y
++CONFIG_PSTORE_RAM=y
++CONFIG_PSTORE_ZSTD_COMPRESS=y
++# CONFIG_PSTORE_ZSTD_COMPRESS_DEFAULT is not set
++CONFIG_PTP_1588_CLOCK=y
++CONFIG_PTP_1588_CLOCK_KVM=y
++CONFIG_PTP_1588_CLOCK_OPTIONAL=y
++CONFIG_PWM=y
++CONFIG_PWM_CLK=y
++CONFIG_PWM_SYSFS=y
++# CONFIG_QCM_DISPCC_2290 is not set
++# CONFIG_QCM_GCC_2290 is not set
++CONFIG_QCOM_A53PLL=y
++# CONFIG_QCOM_AOSS_QMP is not set
++CONFIG_QCOM_APCS_IPC=y
++# CONFIG_QCOM_APR is not set
++CONFIG_QCOM_BAM_DMA=y
++# CONFIG_QCOM_CLK_APCC_MSM8996 is not set
++CONFIG_QCOM_CLK_APCS_MSM8916=y
++# CONFIG_QCOM_CLK_APCS_SDX55 is not set
++CONFIG_QCOM_CLK_SMD_RPM=y
++# CONFIG_QCOM_COINCELL is not set
++# CONFIG_QCOM_COMMAND_DB is not set
++CONFIG_QCOM_CPR=y
++# CONFIG_QCOM_EBI2 is not set
++# CONFIG_QCOM_FASTRPC is not set
++CONFIG_QCOM_GDSC=y
++# CONFIG_QCOM_GENI_SE is not set
++# CONFIG_QCOM_GSBI is not set
++# CONFIG_QCOM_HFPLL is not set
++# CONFIG_QCOM_ICC_BWMON is not set
++CONFIG_QCOM_IOMMU=y
++# CONFIG_QCOM_IPCC is not set
++# CONFIG_QCOM_LLCC is not set
++CONFIG_QCOM_MPM=y
++# CONFIG_QCOM_OCMEM is not set
++# CONFIG_QCOM_PDC is not set
++# CONFIG_QCOM_Q6V5_ADSP is not set
++# CONFIG_QCOM_Q6V5_MSS is not set
++# CONFIG_QCOM_Q6V5_PAS is not set
++# CONFIG_QCOM_Q6V5_WCSS is not set
++CONFIG_QCOM_QMI_HELPERS=y
++CONFIG_QCOM_RMTFS_MEM=y
++CONFIG_QCOM_RPMCC=y
++# CONFIG_QCOM_RPMH is not set
++CONFIG_QCOM_RPMPD=y
++CONFIG_QCOM_SCM=y
++# CONFIG_QCOM_SCM_DOWNLOAD_MODE_DEFAULT is not set
++CONFIG_QCOM_SMD_RPM=y
++CONFIG_QCOM_SMEM=y
++CONFIG_QCOM_SMEM_STATE=y
++CONFIG_QCOM_SMP2P=y
++CONFIG_QCOM_SMSM=y
++CONFIG_QCOM_SOCINFO=y
++CONFIG_QCOM_SPM=y
++# CONFIG_QCOM_SPMI_RRADC is not set
++CONFIG_QCOM_SPMI_TEMP_ALARM=y
++CONFIG_QCOM_SPMI_VADC=y
++CONFIG_QCOM_STATS=y
++CONFIG_QCOM_SYSMON=y
++CONFIG_QCOM_TSENS=y
++CONFIG_QCOM_VADC_COMMON=y
++# CONFIG_QCOM_WCNSS_CTRL is not set
++# CONFIG_QCOM_WCNSS_PIL is not set
++CONFIG_QCOM_WDT=y
++# CONFIG_QCS_GCC_404 is not set
++# CONFIG_QCS_Q6SSTOP_404 is not set
++# CONFIG_QCS_TURING_404 is not set
++# CONFIG_QFMT_V2 is not set
++CONFIG_QRTR=y
++CONFIG_QRTR_SMD=y
++CONFIG_QUEUED_RWLOCKS=y
++CONFIG_QUEUED_SPINLOCKS=y
++CONFIG_QUOTA=y
++CONFIG_QUOTACTL=y
++CONFIG_RANDOMIZE_BASE=y
++CONFIG_RANDOMIZE_MODULE_REGION_FULL=y
++# CONFIG_RANDSTRUCT_FULL is not set
++CONFIG_RANDSTRUCT_NONE=y
++# CONFIG_RANDSTRUCT_PERFORMANCE is not set
++CONFIG_RAS=y
++CONFIG_RATIONAL=y
++# CONFIG_RAVE_SP_CORE is not set
++CONFIG_RCU_CPU_STALL_TIMEOUT=21
++CONFIG_RD_BZIP2=y
++CONFIG_RD_GZIP=y
++CONFIG_RD_LZ4=y
++CONFIG_RD_LZMA=y
++CONFIG_RD_LZO=y
++CONFIG_RD_XZ=y
++CONFIG_RD_ZSTD=y
++CONFIG_REBOOT_MODE=y
++CONFIG_REED_SOLOMON=y
++CONFIG_REED_SOLOMON_DEC8=y
++CONFIG_REED_SOLOMON_ENC8=y
++CONFIG_REGMAP=y
++CONFIG_REGMAP_I2C=y
++CONFIG_REGMAP_IRQ=y
++CONFIG_REGMAP_MMIO=y
++CONFIG_REGMAP_SPMI=y
++CONFIG_REGULATOR=y
++CONFIG_REGULATOR_FIXED_VOLTAGE=y
++# CONFIG_REGULATOR_QCOM_LABIBB is not set
++CONFIG_REGULATOR_QCOM_SMD_RPM=y
++CONFIG_REGULATOR_QCOM_SPMI=y
++# CONFIG_REGULATOR_QCOM_USB_VBUS is not set
++CONFIG_REGULATOR_TPS65132=y
++# CONFIG_REGULATOR_VQMMC_IPQ4019 is not set
++CONFIG_RELOCATABLE=y
++CONFIG_REMOTEPROC=y
++CONFIG_REMOTEPROC_CDEV=y
++CONFIG_RESET_CONTROLLER=y
++# CONFIG_RESET_QCOM_AOSS is not set
++# CONFIG_RESET_QCOM_PDC is not set
++CONFIG_RFS_ACCEL=y
++CONFIG_RODATA_FULL_DEFAULT_ENABLED=y
++CONFIG_RPMSG=y
++CONFIG_RPMSG_CHAR=y
++CONFIG_RPMSG_CTRL=y
++# CONFIG_RPMSG_NS is not set
++# CONFIG_RPMSG_QCOM_GLINK_SMEM is not set
++CONFIG_RPMSG_QCOM_SMD=y
++# CONFIG_RPMSG_TTY is not set
++CONFIG_RPS=y
++CONFIG_RSEQ=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_DRV_PM8XXX=y
++CONFIG_RTC_I2C_AND_SPI=y
++CONFIG_RTC_NVMEM=y
++CONFIG_RWSEM_SPIN_ON_OWNER=y
++CONFIG_SCHED_CLUSTER=y
++# CONFIG_SCHED_CORE is not set
++CONFIG_SCHED_MC=y
++CONFIG_SCHED_SMT=y
++CONFIG_SCHED_THERMAL_PRESSURE=y
++CONFIG_SCSI=y
++CONFIG_SCSI_COMMON=y
++# CONFIG_SCSI_PROC_FS is not set
++CONFIG_SCSI_SCAN_ASYNC=y
++# CONFIG_SC_CAMCC_7280 is not set
++# CONFIG_SC_DISPCC_7180 is not set
++# CONFIG_SC_GCC_7180 is not set
++# CONFIG_SC_GCC_8280XP is not set
++# CONFIG_SC_GPUCC_7180 is not set
++# CONFIG_SC_LPASSCC_7280 is not set
++# CONFIG_SC_LPASS_CORECC_7180 is not set
++# CONFIG_SC_LPASS_CORECC_7280 is not set
++# CONFIG_SC_MSS_7180 is not set
++# CONFIG_SC_VIDEOCC_7180 is not set
++# CONFIG_SDM_CAMCC_845 is not set
++# CONFIG_SDM_DISPCC_845 is not set
++# CONFIG_SDM_GCC_660 is not set
++# CONFIG_SDM_GCC_845 is not set
++# CONFIG_SDM_GPUCC_845 is not set
++# CONFIG_SDM_LPASSCC_845 is not set
++# CONFIG_SDM_VIDEOCC_845 is not set
++# CONFIG_SDX_GCC_65 is not set
++CONFIG_SECCOMP=y
++CONFIG_SECCOMP_FILTER=y
++# CONFIG_SECONDARY_TRUSTED_KEYRING is not set
++CONFIG_SECRETMEM=y
++# CONFIG_SECURITY_DMESG_RESTRICT is not set
++# CONFIG_SERIAL_8250 is not set
++CONFIG_SERIAL_DEV_BUS=y
++CONFIG_SERIAL_DEV_CTRL_TTYPORT=y
++CONFIG_SERIAL_MSM=y
++CONFIG_SERIAL_MSM_CONSOLE=y
++CONFIG_SGL_ALLOC=y
++CONFIG_SG_POOL=y
++CONFIG_SLUB_DEBUG=y
++CONFIG_SMP=y
++# CONFIG_SM_CAMCC_8450 is not set
++# CONFIG_SM_GCC_8150 is not set
++# CONFIG_SM_GCC_8250 is not set
++# CONFIG_SM_GCC_8450 is not set
++# CONFIG_SM_GPUCC_6350 is not set
++# CONFIG_SM_GPUCC_8150 is not set
++# CONFIG_SM_GPUCC_8250 is not set
++# CONFIG_SM_GPUCC_8350 is not set
++# CONFIG_SM_VIDEOCC_8150 is not set
++# CONFIG_SM_VIDEOCC_8250 is not set
++CONFIG_SOCK_DIAG=y
++CONFIG_SOCK_RX_QUEUE_MAPPING=y
++CONFIG_SOC_BUS=y
++CONFIG_SOFTIRQ_ON_OWN_STACK=y
++CONFIG_SPARSEMEM=y
++CONFIG_SPARSEMEM_EXTREME=y
++CONFIG_SPARSEMEM_VMEMMAP=y
++CONFIG_SPARSEMEM_VMEMMAP_ENABLE=y
++CONFIG_SPARSE_IRQ=y
++CONFIG_SPI=y
++CONFIG_SPI_BITBANG=y
++CONFIG_SPI_DYNAMIC=y
++CONFIG_SPI_GPIO=y
++CONFIG_SPI_MASTER=y
++CONFIG_SPI_QUP=y
++CONFIG_SPMI=y
++# CONFIG_SPMI_HISI3670 is not set
++CONFIG_SPMI_MSM_PMIC_ARB=y
++# CONFIG_SPMI_PMIC_CLKDIV is not set
++# CONFIG_SQUASHFS is not set
++CONFIG_SRCU=y
++CONFIG_STACKDEPOT=y
++CONFIG_STACKPROTECTOR=y
++CONFIG_STACKPROTECTOR_PER_TASK=y
++CONFIG_STACKTRACE=y
++# CONFIG_STAGING is not set
++# CONFIG_STRIP_ASM_SYMS is not set
++CONFIG_SURFACE_PLATFORMS=y
++CONFIG_SWIOTLB=y
++CONFIG_SYNC_FILE=y
++# CONFIG_SYN_COOKIES is not set
++CONFIG_SYSCTL_EXCEPTION_TRACE=y
++CONFIG_SYSFS_SYSCALL=y
++# CONFIG_SYSTEM_EXTRA_CERTIFICATE is not set
++CONFIG_SYSTEM_TRUSTED_KEYRING=y
++CONFIG_SYSVIPC_COMPAT=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_THERMAL=y
++CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=y
++CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS=0
++CONFIG_THERMAL_EMULATION=y
++CONFIG_THERMAL_GOV_STEP_WISE=y
++CONFIG_THERMAL_HWMON=y
++CONFIG_THERMAL_OF=y
++CONFIG_THP_SWAP=y
++CONFIG_THREAD_INFO_IN_TASK=y
++CONFIG_TICK_CPU_ACCOUNTING=y
++CONFIG_TIMER_OF=y
++CONFIG_TIMER_PROBE=y
++CONFIG_TIME_NS=y
++CONFIG_TRACE_IRQFLAGS_NMI_SUPPORT=y
++CONFIG_TRANSPARENT_HUGEPAGE=y
++CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
++# CONFIG_TRANSPARENT_HUGEPAGE_MADVISE is not set
++CONFIG_TREE_RCU=y
++CONFIG_TREE_SRCU=y
++# CONFIG_UACCE is not set
++# CONFIG_UCLAMP_TASK is not set
++# CONFIG_UEVENT_HELPER is not set
++CONFIG_UNINLINE_SPIN_UNLOCK=y
++CONFIG_UNMAP_KERNEL_AT_EL0=y
++CONFIG_USB=y
++CONFIG_USB_CHIPIDEA=y
++CONFIG_USB_CHIPIDEA_GENERIC=y
++CONFIG_USB_CHIPIDEA_HOST=y
++CONFIG_USB_CHIPIDEA_IMX=y
++CONFIG_USB_CHIPIDEA_MSM=y
++CONFIG_USB_CHIPIDEA_TEGRA=y
++CONFIG_USB_CHIPIDEA_UDC=y
++CONFIG_USB_COMMON=y
++CONFIG_USB_EHCI_HCD=y
++# CONFIG_USB_EHCI_HCD_PLATFORM is not set
++CONFIG_USB_GADGET=y
++CONFIG_USB_HID=y
++CONFIG_USB_HSIC_USB3503=y
++CONFIG_USB_LED_TRIG=y
++CONFIG_USB_NET_DRIVERS=y
++CONFIG_USB_OTG=y
++CONFIG_USB_ROLE_SWITCH=y
++CONFIG_USB_STORAGE=y
++CONFIG_USB_SUPPORT=y
++CONFIG_USB_ULPI_BUS=y
++CONFIG_USER_NS=y
++CONFIG_UTS_NS=y
++CONFIG_VFAT_FS=y
++CONFIG_VIRTIO=y
++CONFIG_VIRTIO_ANCHOR=y
++# CONFIG_VIRTIO_BLK is not set
++# CONFIG_VIRTIO_IOMMU is not set
++# CONFIG_VIRTIO_MENU is not set
++# CONFIG_VIRTIO_NET is not set
++CONFIG_VLAN_8021Q_GVRP=y
++CONFIG_VLAN_8021Q_MVRP=y
++CONFIG_VMAP_STACK=y
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_VT=y
++CONFIG_VT_CONSOLE=y
++CONFIG_VT_HW_CONSOLE_BINDING=y
++CONFIG_WANT_DEV_COREDUMP=y
++CONFIG_WATCHDOG_CORE=y
++CONFIG_WATCHDOG_SYSFS=y
++# CONFIG_WLAN is not set
++CONFIG_X509_CERTIFICATE_PARSER=y
++CONFIG_XARRAY_MULTI=y
++CONFIG_XPS=y
++CONFIG_XXHASH=y
++CONFIG_XZ_DEC_ARM=y
++CONFIG_XZ_DEC_ARMTHUMB=y
++CONFIG_XZ_DEC_BCJ=y
++CONFIG_XZ_DEC_IA64=y
++CONFIG_XZ_DEC_POWERPC=y
++CONFIG_XZ_DEC_SPARC=y
++CONFIG_XZ_DEC_X86=y
++CONFIG_ZLIB_DEFLATE=y
++CONFIG_ZLIB_INFLATE=y
++CONFIG_ZONE_DMA32=y
++CONFIG_ZSTD_COMMON=y
++CONFIG_ZSTD_COMPRESS=y
++CONFIG_ZSTD_DECOMPRESS=y
+diff --git a/target/linux/msm89xx/image/Makefile b/target/linux/msm89xx/image/Makefile
+new file mode 100644
+index 0000000..b593624
+--- /dev/null
++++ b/target/linux/msm89xx/image/Makefile
+@@ -0,0 +1,44 @@
++# SPDX-License-Identifier: GPL-2.0-only
++
++include $(TOPDIR)/rules.mk
++include $(INCLUDE_DIR)/image.mk
++
++
++define Build/Compile
++	$(CP) $(LINUX_DIR)/COPYING $(KDIR)/COPYING.linux
++endef
++
++### Image scripts ###
++define Build/aboot-img
++	mkbootimg \
++		--kernel $@ \
++		--ramdisk $(if $(CONFIG_TARGET_ROOTFS_INITRAMFS),\
++			$(KERNEL_BUILD_DIR)/initrd.cpio$(strip $(call Build/initrd_compression))\
++			,/dev/null) \
++		--cmdline $(CMDLINE) \
++		-o $@.new
++	mv $@.new $@
++endef
++
++define Build/sparse-img
++	img2simg  $@ $@.new
++	mv $@.new $@
++endef
++
++### Devices ###
++define Device/Default
++	PROFILES := Default
++	KERNEL := kernel-bin | gzip | append-dtb
++	IMAGES := boot.img system.img
++	IMAGE/boot.img := append-kernel | aboot-img | append-metadata
++	IMAGE/system.img := append-rootfs | sparse-img | append-metadata
++	DEVICE_DTS_DIR := $(DTS_DIR)/qcom
++	DEVICE_DTS = $$(SOC)-$(lastword $(subst _, ,$(1)))
++	CMDLINE := "earlycon console=ttyMSM0,115200 "\
++		   $(if $(CONFIG_TARGET_ROOTFS_INITRAMFS),,\
++			   $(if $(ROOT_BLKDEV),"root=$(ROOT_BLKDEV) rw rootwait"))
++endef
++
++include $(SUBTARGET).mk
++
++$(eval $(call BuildImage))
+diff --git a/target/linux/msm89xx/image/msm8916.mk b/target/linux/msm89xx/image/msm8916.mk
+new file mode 100644
+index 0000000..b9580b3
+--- /dev/null
++++ b/target/linux/msm89xx/image/msm8916.mk
+@@ -0,0 +1,25 @@
++# SPDX-License-Identifier: GPL-2.0-only
++
++define Device/longcheer-l8150
++	DEVICE_VENDOR := Longcheer
++	DEVICE_MODEL := L8150
++	SOC := msm8916
++	ROOT_BLKDEV := "/dev/mmcblk0p31"
++endef
++TARGET_DEVICES += longcheer-l8150
++
++define Device/thwc-uf896
++	DEVICE_VENDOR := THWC
++	DEVICE_MODEL := uf896
++	SOC := msm8916
++	ROOT_BLKDEV := "/dev/mmcblk0p27"
++endef
++TARGET_DEVICES += thwc-uf896
++
++define Device/thwc-ufi001c
++	DEVICE_VENDOR := THWC
++	DEVICE_MODEL := ufi001c
++	SOC := msm8916
++	ROOT_BLKDEV := "/dev/mmcblk0p14"
++endef
++TARGET_DEVICES += thwc-ufi001c
+\ No newline at end of file
+diff --git a/target/linux/msm89xx/modules.mk b/target/linux/msm89xx/modules.mk
+new file mode 100644
+index 0000000..ffc68ca
+--- /dev/null
++++ b/target/linux/msm89xx/modules.mk
+@@ -0,0 +1,60 @@
++# SPDX-License-Identifier: GPL-2.0-only
++
++define KernelPackage/qcom-rproc
++  SUBMENU:=$(OTHER_MENU)
++  TITLE:=Qualcomm remoteproc support
++  DEPENDS:=@TARGET_msm89xx
++  KCONFIG:=\
++    CONFIG_QCOM_MDT_LOADER \
++    CONFIG_QCOM_RPROC_COMMON \
++    CONFIG_QCOM_PIL_INFO
++  FILES:=\
++    $(LINUX_DIR)/drivers/soc/qcom/mdt_loader.ko \
++    $(LINUX_DIR)/drivers/remoteproc/qcom_common.ko \
++    $(LINUX_DIR)/drivers/remoteproc/qcom_pil_info.ko
++  AUTOLOAD:=$(call AutoProbe,mdt_loader qcom_common qcom_pil_info)
++endef
++
++define KernelPackage/qcom-rproc/description
++Support for loading remoteprocs in some Qualcomm chipsets
++endef
++
++$(eval $(call KernelPackage,qcom-rproc))
++
++define KernelPackage/qcom-rproc-wcnss
++  SUBMENU:=$(OTHER_MENU)
++  TITLE:=Qualcomm WCNSS remoteproc support
++  DEPENDS:=@TARGET_msm89xx +kmod-qcom-rproc
++  KCONFIG:=\
++    CONFIG_QCOM_WCNSS_PIL \
++    CONFIG_QCOM_WCNSS_CTRL
++  FILES:=\
++    $(LINUX_DIR)/drivers/remoteproc/qcom_wcnss_pil.ko \
++    $(LINUX_DIR)/drivers/soc/qcom/wcnss_ctrl.ko
++  AUTOLOAD:=$(call AutoProbe,qcom_wcnss_pil wcnss_ctrl)
++endef
++
++define KernelPackage/qcom-rproc-wcnss/description
++Firmware loading and control for the WCNSS remoteproc
++endef
++
++$(eval $(call KernelPackage,qcom-rproc-wcnss))
++
++define KernelPackage/qcom-rproc-modem
++  SUBMENU:=$(OTHER_MENU)
++  TITLE:=Qualcomm modem remoteproc support
++  DEPENDS:=@TARGET_msm89xx +kmod-qcom-rproc
++  KCONFIG:=\
++    CONFIG_QCOM_Q6V5_COMMON \
++    CONFIG_QCOM_Q6V5_MSS
++  FILES:=\
++    $(LINUX_DIR)/drivers/remoteproc/qcom_q6v5.ko \
++    $(LINUX_DIR)/drivers/remoteproc/qcom_q6v5_mss.ko
++  AUTOLOAD:=$(call AutoProbe,qcom_q6v5 qcom_q6v5_mss)
++endef
++
++define KernelPackage/qcom-rproc-modem/description
++Firmware loading and control for the modem remoteproc.
++endef
++
++$(eval $(call KernelPackage,qcom-rproc-modem))
+diff --git a/target/linux/msm89xx/msm8916/target.mk b/target/linux/msm89xx/msm8916/target.mk
+new file mode 100644
+index 0000000..81d7add
+--- /dev/null
++++ b/target/linux/msm89xx/msm8916/target.mk
+@@ -0,0 +1,8 @@
++SUBTARGET:=msm8916
++BOARDNAME:=Snapdragon 410 (msm8916) based boards
++ARCH:=aarch64
++
++define Target/Description
++	Build firmware images for msm8916 based boards.
++	This firmware features a 64 bit kernel.
++endef
+diff --git a/target/linux/msm89xx/patches-6.1/101-arm64-dts-qcom-msm8916-thwc-Add-initial-device-trees.patch b/target/linux/msm89xx/patches-6.1/101-arm64-dts-qcom-msm8916-thwc-Add-initial-device-trees.patch
+new file mode 100644
+index 0000000..a9a5309
+--- /dev/null
++++ b/target/linux/msm89xx/patches-6.1/101-arm64-dts-qcom-msm8916-thwc-Add-initial-device-trees.patch
+@@ -0,0 +1,399 @@
++From 0a199d39eed08d95832b622b4aad503431279795 Mon Sep 17 00:00:00 2001
++From: Yang Xiwen <forbidden405@foxmail.com>
++Date: Sat, 14 Jan 2023 14:38:46 +0800
++Subject: [PATCH 1/4] arm64: dts: qcom: msm8916-thwc: Add initial device trees
++
++This commit adds support for the ufi-001C and uf896 WiFi/LTE dongle made by
++Tong Heng Wei Chuang based on MSM8916.
++uf896 is another variant for the usb stick. The board design
++differs by using different gpios for the keys and leds.
++
++Note: The original firmware does not support 64-bit OS. It is necessary
++to flash 64-bit TZ firmware to boot arm64.
++
++Currently supported:
++- All CPU cores
++- Buttons
++- LEDs
++- Modem
++- SDHC
++- USB Device Mode
++- UART
++
++Co-developed-by: Jaime Breva <jbreva@nayarsystems.com>
++Signed-off-by: Jaime Breva <jbreva@nayarsystems.com>
++Co-developed-by: Nikita Travkin <nikita@trvn.ru>
++Signed-off-by: Nikita Travkin <nikita@trvn.ru>
++Signed-off-by: Yang Xiwen <forbidden405@foxmail.com>
++---
++ arch/arm64/boot/dts/qcom/Makefile             |   2 +
++ .../boot/dts/qcom/msm8916-thwc-uf896.dts      |  39 +++
++ .../boot/dts/qcom/msm8916-thwc-ufi001c.dts    |  39 +++
++ arch/arm64/boot/dts/qcom/msm8916-ufi.dtsi     | 250 ++++++++++++++++++
++ 4 files changed, 330 insertions(+)
++ create mode 100644 arch/arm64/boot/dts/qcom/msm8916-thwc-uf896.dts
++ create mode 100644 arch/arm64/boot/dts/qcom/msm8916-thwc-ufi001c.dts
++ create mode 100644 arch/arm64/boot/dts/qcom/msm8916-ufi.dtsi
++
++diff --git a/arch/arm64/boot/dts/qcom/Makefile b/arch/arm64/boot/dts/qcom/Makefile
++index d7669a7cee9f..23394c7465d6 100644
++--- a/arch/arm64/boot/dts/qcom/Makefile
+++++ b/arch/arm64/boot/dts/qcom/Makefile
++@@ -20,6 +20,8 @@ dtb-$(CONFIG_ARCH_QCOM)	+= msm8916-samsung-e7.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= msm8916-samsung-grandmax.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= msm8916-samsung-j5.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= msm8916-samsung-serranove.dtb
+++dtb-$(CONFIG_ARCH_QCOM)	+= msm8916-thwc-uf896.dtb
+++dtb-$(CONFIG_ARCH_QCOM)	+= msm8916-thwc-ufi001c.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= msm8916-wingtech-wt88047.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= msm8992-lg-bullhead-rev-10.dtb
++ dtb-$(CONFIG_ARCH_QCOM)	+= msm8992-lg-bullhead-rev-101.dtb
++diff --git a/arch/arm64/boot/dts/qcom/msm8916-thwc-uf896.dts b/arch/arm64/boot/dts/qcom/msm8916-thwc-uf896.dts
++new file mode 100644
++index 000000000000..c492db856190
++--- /dev/null
+++++ b/arch/arm64/boot/dts/qcom/msm8916-thwc-uf896.dts
++@@ -0,0 +1,39 @@
+++// SPDX-License-Identifier: GPL-2.0-only
+++
+++/dts-v1/;
+++
+++#include "msm8916-ufi.dtsi"
+++
+++/ {
+++	model = "uf896 4G Modem Stick";
+++	compatible = "thwc,uf896", "qcom,msm8916";
+++};
+++
+++&button_restart {
+++	gpios = <&msmgpio 35 GPIO_ACTIVE_LOW>;
+++};
+++
+++&led_r {
+++	gpios = <&msmgpio 82 GPIO_ACTIVE_HIGH>;
+++};
+++
+++&led_g {
+++	gpios = <&msmgpio 83 GPIO_ACTIVE_HIGH>;
+++};
+++
+++&led_b {
+++	gpios = <&msmgpio 81 GPIO_ACTIVE_HIGH>;
+++};
+++
+++&button_default {
+++	pins = "gpio35";
+++	bias-pull-up;
+++};
+++
+++&gpio_leds_default {
+++	pins = "gpio81", "gpio82", "gpio83";
+++};
+++
+++&sim_ctrl_default {
+++	pins = "gpio1", "gpio2";
+++};
++diff --git a/arch/arm64/boot/dts/qcom/msm8916-thwc-ufi001c.dts b/arch/arm64/boot/dts/qcom/msm8916-thwc-ufi001c.dts
++new file mode 100644
++index 000000000000..700cf81cbf8c
++--- /dev/null
+++++ b/arch/arm64/boot/dts/qcom/msm8916-thwc-ufi001c.dts
++@@ -0,0 +1,39 @@
+++// SPDX-License-Identifier: GPL-2.0-only
+++
+++/dts-v1/;
+++
+++#include "msm8916-ufi.dtsi"
+++
+++/ {
+++	model = "ufi-001c/ufi-001b 4G Modem Stick";
+++	compatible = "thwc,ufi001c", "qcom,msm8916";
+++};
+++
+++&button_restart {
+++	gpios = <&msmgpio 37 GPIO_ACTIVE_HIGH>;
+++};
+++
+++&led_r {
+++	gpios = <&msmgpio 22 GPIO_ACTIVE_HIGH>;
+++};
+++
+++&led_g {
+++	gpios = <&msmgpio 21 GPIO_ACTIVE_HIGH>;
+++};
+++
+++&led_b {
+++	gpios = <&msmgpio 20 GPIO_ACTIVE_HIGH>;
+++};
+++
+++&button_default {
+++	pins = "gpio37";
+++	bias-pull-down;
+++};
+++
+++&gpio_leds_default {
+++	pins = "gpio20", "gpio21", "gpio22";
+++};
+++
+++&sim_ctrl_default {
+++	pins = "gpio1", "gpio2";
+++};
++diff --git a/arch/arm64/boot/dts/qcom/msm8916-ufi.dtsi b/arch/arm64/boot/dts/qcom/msm8916-ufi.dtsi
++new file mode 100644
++index 000000000000..790a9696da9d
++--- /dev/null
+++++ b/arch/arm64/boot/dts/qcom/msm8916-ufi.dtsi
++@@ -0,0 +1,250 @@
+++// SPDX-License-Identifier: GPL-2.0-only
+++
+++#include "msm8916-pm8916.dtsi"
+++
+++#include <dt-bindings/gpio/gpio.h>
+++#include <dt-bindings/leds/common.h>
+++
+++/ {
+++	chassis-type = "embedded";
+++
+++	aliases {
+++		serial0 = &blsp1_uart2;
+++	};
+++
+++	chosen {
+++		stdout-path = "serial0";
+++	};
+++
+++	reserved-memory {
+++		mpss_mem: mpss@86800000 {
+++			reg = <0x0 0x86800000 0x0 0x5500000>;
+++			no-map;
+++		};
+++
+++		gps_mem: gps@8bd00000 {
+++			reg = <0x0 0x8bd00000 0x0 0x200000>;
+++			no-map;
+++		};
+++	};
+++
+++	gpio-keys {
+++		compatible = "gpio-keys";
+++
+++		pinctrl-0 = <&button_default>;
+++		pinctrl-names = "default";
+++
+++		label = "GPIO Buttons";
+++
+++		/* GPIO is board-specific */
+++		button_restart: button-restart {
+++			label = "Restart";
+++			linux,code = <KEY_RESTART>;
+++		};
+++	};
+++
+++	leds {
+++		compatible = "gpio-leds";
+++
+++		pinctrl-0 = <&gpio_leds_default>;
+++		pinctrl-names = "default";
+++
+++		/*
+++		 * GPIOs are board-specific.
+++		 * Functions and default-states defined here are fallbacks.
+++		 * Feel free to override them if your board is different.
+++		 */
+++		led_r: led-r {
+++			color = <LED_COLOR_ID_RED>;
+++			default-state = "on";
+++			function = LED_FUNCTION_POWER;
+++		};
+++
+++		led_g: led-g {
+++			color = <LED_COLOR_ID_GREEN>;
+++			default-state = "off";
+++			function = LED_FUNCTION_WLAN;
+++		};
+++
+++		led_b: led-b {
+++			color = <LED_COLOR_ID_BLUE>;
+++			default-state = "off";
+++			function = LED_FUNCTION_WAN;
+++		};
+++	};
+++};
+++
+++&bam_dmux {
+++	status = "okay";
+++};
+++
+++&bam_dmux_dma {
+++	status = "okay";
+++};
+++
+++&blsp1_uart2 {
+++	status = "okay";
+++};
+++
+++/* Remove &dsi_phy0 from clocks to make sure that gcc probes with display disabled */
+++&gcc {
+++	clocks = <&xo_board>, <&sleep_clk>, <0>, <0>, <0>, <0>, <0>;
+++};
+++
+++&mpss {
+++	pinctrl-0 = <&sim_ctrl_default>;
+++	pinctrl-names = "default";
+++
+++	status = "okay";
+++};
+++
+++&pm8916_usbin {
+++	status = "okay";
+++};
+++
+++&pronto {
+++	status = "okay";
+++};
+++
+++&sdhc_1 {
+++	pinctrl-0 = <&sdc1_clk_on &sdc1_cmd_on &sdc1_data_on>;
+++	pinctrl-1 = <&sdc1_clk_off &sdc1_cmd_off &sdc1_data_off>;
+++	pinctrl-names = "default", "sleep";
+++
+++	status = "okay";
+++};
+++
+++&usb {
+++	extcon = <&pm8916_usbin>;
+++	dr_mode = "peripheral";
+++
+++	status = "okay";
+++};
+++
+++&usb_hs_phy {
+++	extcon = <&pm8916_usbin>;
+++};
+++
+++&smd_rpm_regulators {
+++	vdd_l1_l2_l3-supply = <&pm8916_s3>;
+++	vdd_l4_l5_l6-supply = <&pm8916_s4>;
+++	vdd_l7-supply = <&pm8916_s4>;
+++
+++	s3 {
+++		regulator-min-microvolt = <1200000>;
+++		regulator-max-microvolt = <1300000>;
+++	};
+++
+++	s4 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <2100000>;
+++	};
+++
+++	l1 {
+++		regulator-min-microvolt = <1225000>;
+++		regulator-max-microvolt = <1225000>;
+++	};
+++
+++	l2 {
+++		regulator-min-microvolt = <1200000>;
+++		regulator-max-microvolt = <1200000>;
+++	};
+++
+++	l4 {
+++		regulator-min-microvolt = <2050000>;
+++		regulator-max-microvolt = <2050000>;
+++	};
+++
+++	l5 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <1800000>;
+++	};
+++
+++	l6 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <1800000>;
+++	};
+++
+++	l7 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <1800000>;
+++	};
+++
+++	l8 {
+++		regulator-min-microvolt = <2850000>;
+++		regulator-max-microvolt = <2900000>;
+++	};
+++
+++	l9 {
+++		regulator-min-microvolt = <3300000>;
+++		regulator-max-microvolt = <3300000>;
+++	};
+++
+++	l10 {
+++		regulator-min-microvolt = <2700000>;
+++		regulator-max-microvolt = <2800000>;
+++	};
+++
+++	l11 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <2950000>;
+++		regulator-system-load = <200000>;
+++		regulator-allow-set-load;
+++	};
+++
+++	l12 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <2950000>;
+++	};
+++
+++	l13 {
+++		regulator-min-microvolt = <3075000>;
+++		regulator-max-microvolt = <3075000>;
+++	};
+++
+++	l14 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <3300000>;
+++	};
+++
+++	l15 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <3300000>;
+++	};
+++
+++	l16 {
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <3300000>;
+++	};
+++
+++	l17 {
+++		regulator-min-microvolt = <2850000>;
+++		regulator-max-microvolt = <2850000>;
+++	};
+++
+++	l18 {
+++		regulator-min-microvolt = <2700000>;
+++		regulator-max-microvolt = <2700000>;
+++	};
+++};
+++
+++&msmgpio {
+++	/* pins are board-specific */
+++	button_default: button-default-state {
+++		function = "gpio";
+++		drive-strength = <2>;
+++	};
+++
+++	gpio_leds_default: gpio-leds-default-state {
+++		function = "gpio";
+++		drive-strength = <2>;
+++		bias-disable;
+++	};
+++
+++	sim_ctrl_default: sim-ctrl-default-state {
+++		function = "gpio";
+++		drive-strength = <2>;
+++		bias-disable;
+++		output-low;
+++	};
+++};
++-- 
++2.38.1
++
+diff --git a/target/linux/msm89xx/patches-6.1/901-arm64-dts-qcom-msm8916-Reduce-reserved-memory-for-ve.patch b/target/linux/msm89xx/patches-6.1/901-arm64-dts-qcom-msm8916-Reduce-reserved-memory-for-ve.patch
+new file mode 100644
+index 0000000..9bcf4b8
+--- /dev/null
++++ b/target/linux/msm89xx/patches-6.1/901-arm64-dts-qcom-msm8916-Reduce-reserved-memory-for-ve.patch
+@@ -0,0 +1,32 @@
++From 7f44756c1017df36785a0f01c882c65cb74be5fb Mon Sep 17 00:00:00 2001
++From: Stephan Gerhold <stephan@gerhold.net>
++Date: Thu, 14 Oct 2021 20:55:42 +0200
++Subject: [PATCH 2/4] arm64: dts: qcom: msm8916: Reduce reserved memory for
++ venus
++
++According to the ELF headers of the venus firmware binaries, only
++~ 5 MiB (0x500000) of the venus memory region will actually end up
++being used. Reduce the size of the reserved-memory region to make
++slightly more RAM available for Linux.
++
++Signed-off-by: Stephan Gerhold <stephan@gerhold.net>
++---
++ arch/arm64/boot/dts/qcom/msm8916.dtsi | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++diff --git a/arch/arm64/boot/dts/qcom/msm8916.dtsi b/arch/arm64/boot/dts/qcom/msm8916.dtsi
++index a831064700ee..445a1a819c0d 100644
++--- a/arch/arm64/boot/dts/qcom/msm8916.dtsi
+++++ b/arch/arm64/boot/dts/qcom/msm8916.dtsi
++@@ -89,7 +89,7 @@ wcnss_mem: wcnss@89300000 {
++ 		};
++ 
++ 		venus_mem: venus@89900000 {
++-			reg = <0x0 0x89900000 0x0 0x600000>;
+++			reg = <0x0 0x89900000 0x0 0x500000>;
++ 			no-map;
++ 		};
++ 
++-- 
++2.38.1
++
+diff --git a/target/linux/msm89xx/patches-6.1/902-arm64-dts-qcom-msm8916-Place-wcnss-venus-memory-next.patch b/target/linux/msm89xx/patches-6.1/902-arm64-dts-qcom-msm8916-Place-wcnss-venus-memory-next.patch
+new file mode 100644
+index 0000000..b50f5cd
+--- /dev/null
++++ b/target/linux/msm89xx/patches-6.1/902-arm64-dts-qcom-msm8916-Place-wcnss-venus-memory-next.patch
+@@ -0,0 +1,81 @@
++From 9338857a5e042ac51cb3f502e6ade0dff38c7197 Mon Sep 17 00:00:00 2001
++From: Stephan Gerhold <stephan@gerhold.net>
++Date: Thu, 14 Oct 2021 20:59:22 +0200
++Subject: [PATCH 3/4] arm64: dts: qcom: msm8916: Place wcnss/venus memory next
++ to mba
++
++The modem (mpss) firmware size varies a lot from device to device.
++It probably depends on the features that are enabled in the firmware,
++so there are often differences of several megabytes. Unfortunately,
++the current memory layout makes it really inconvenient to increase
++the memory region for the modem.
++
++mpss/wcnss/venus are placed contiguously in memory, which means that
++changing the mpss size requires moving the wcnss/venus memory as well.
++The size for wcnss/venus seems consistent on all devices though
++so this is normally not necessary.
++
++To avoid this, move wcnss/venus to the end of the space between
++mpss and mba. The reserved-memory is still largely contiguous
++but this allows growing mpss without moving wcnss/venus.
++
++The only device where this does not help is longcheer-l8150 because
++of its weird non-relocatable wcnss firmware. However, since it is
++the only device with this problem it does not seem worth optimizing
++for that case.
++
++Signed-off-by: Stephan Gerhold <stephan@gerhold.net>
++---
++ arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts | 6 +++---
++ arch/arm64/boot/dts/qcom/msm8916.dtsi                | 8 ++++----
++ 2 files changed, 7 insertions(+), 7 deletions(-)
++
++diff --git a/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts b/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts
++index d85e7f7c0835..9bdbdd506ed5 100644
++--- a/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts
+++++ b/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts
++@@ -8,6 +8,8 @@
++ #include <dt-bindings/interrupt-controller/irq.h>
++ #include <dt-bindings/leds/common.h>
++ 
+++/delete-node/ &wcnss_mem;
+++
++ / {
++ 	model = "Longcheer L8150";
++ 	compatible = "longcheer,l8150", "qcom,msm8916-v1-qrd/9-v1", "qcom,msm8916";
++@@ -22,9 +24,7 @@ chosen {
++ 	};
++ 
++ 	reserved-memory {
++-		// wcnss.mdt is not relocatable, so it must be loaded at 0x8b600000
++-		/delete-node/ wcnss@89300000;
++-
+++		/* wcnss.mdt is not relocatable, it must be loaded at 0x8b600000 */
++ 		wcnss_mem: wcnss@8b600000 {
++ 			reg = <0x0 0x8b600000 0x0 0x600000>;
++ 			no-map;
++diff --git a/arch/arm64/boot/dts/qcom/msm8916.dtsi b/arch/arm64/boot/dts/qcom/msm8916.dtsi
++index 445a1a819c0d..06196e5c737a 100644
++--- a/arch/arm64/boot/dts/qcom/msm8916.dtsi
+++++ b/arch/arm64/boot/dts/qcom/msm8916.dtsi
++@@ -83,13 +83,13 @@ mpss_mem: mpss@86800000 {
++ 			no-map;
++ 		};
++ 
++-		wcnss_mem: wcnss@89300000 {
++-			reg = <0x0 0x89300000 0x0 0x600000>;
+++		wcnss_mem: wcnss@8df00000 {
+++			reg = <0x0 0x8df00000 0x0 0x600000>;
++ 			no-map;
++ 		};
++ 
++-		venus_mem: venus@89900000 {
++-			reg = <0x0 0x89900000 0x0 0x500000>;
+++		venus_mem: venus@8e500000 {
+++			reg = <0x0 0x8e500000 0x0 0x500000>;
++ 			no-map;
++ 		};
++ 
++-- 
++2.38.1
++
+diff --git a/target/linux/msm89xx/patches-6.1/903-REVERTME-arm64-dts-qcom-msm8916-longcheer-l8150-Enab.patch b/target/linux/msm89xx/patches-6.1/903-REVERTME-arm64-dts-qcom-msm8916-longcheer-l8150-Enab.patch
+new file mode 100644
+index 0000000..46b6dea
+--- /dev/null
++++ b/target/linux/msm89xx/patches-6.1/903-REVERTME-arm64-dts-qcom-msm8916-longcheer-l8150-Enab.patch
+@@ -0,0 +1,69 @@
++From 37a1de7bcb3a831c01dd01a145a26a516e54bca7 Mon Sep 17 00:00:00 2001
++From: Nikita Travkin <nikita@trvn.ru>
++Date: Sat, 14 Jan 2023 12:07:31 +0500
++Subject: [PATCH 4/4] REVERTME: arm64: dts: qcom: msm8916-longcheer-l8150:
++ Enable the modem
++
++This is a temporary change to enable the modem with minimal changes.
++A different solution with a special msm8916-modem-sound.dtsi is planned
++to be used upstream to handle the fact that the modem remoteproc acts as
++a system adsp and takes over the audio hw upon boot.
++
++Signed-off-by: Nikita Travkin <nikita@trvn.ru>
++---
++ .../boot/dts/qcom/msm8916-longcheer-l8150.dts  | 18 ++++++++++++++++++
++ 1 file changed, 18 insertions(+)
++
++diff --git a/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts b/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts
++index 9bdbdd506ed5..b15f54dc88da 100644
++--- a/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts
+++++ b/arch/arm64/boot/dts/qcom/msm8916-longcheer-l8150.dts
++@@ -9,6 +9,7 @@
++ #include <dt-bindings/leds/common.h>
++ 
++ /delete-node/ &wcnss_mem;
+++/delete-node/ &mpss_mem;
++ 
++ / {
++ 	model = "Longcheer L8150";
++@@ -29,6 +30,11 @@ wcnss_mem: wcnss@8b600000 {
++ 			reg = <0x0 0x8b600000 0x0 0x600000>;
++ 			no-map;
++ 		};
+++
+++		mpss_mem: mpss@8ec00000 {
+++			reg = <0x0 0x8ec00000 0x0 0x5000000>;
+++			no-map;
+++		};
++ 	};
++ 
++ 	gpio-keys {
++@@ -76,6 +82,14 @@ flash_led: led {
++ 	};
++ };
++ 
+++&bam_dmux {
+++	status = "okay";
+++};
+++
+++&bam_dmux_dma {
+++	status = "okay";
+++};
+++
++ &blsp_i2c1 {
++ 	status = "okay";
++ 
++@@ -218,6 +232,10 @@ &blsp1_uart2 {
++ 	status = "okay";
++ };
++ 
+++&mpss {
+++	status = "okay";
+++};
+++
++ &pm8916_resin {
++ 	status = "okay";
++ 	linux,code = <KEY_VOLUMEDOWN>;
++-- 
++2.38.1
++
+diff --git a/target/linux/msm89xx/patches-6.1/913-net-wwan-qcom_bam_dmux-Track-the-device-stats.patch b/target/linux/msm89xx/patches-6.1/913-net-wwan-qcom_bam_dmux-Track-the-device-stats.patch
+new file mode 100644
+index 0000000..7e91829
+--- /dev/null
++++ b/target/linux/msm89xx/patches-6.1/913-net-wwan-qcom_bam_dmux-Track-the-device-stats.patch
+@@ -0,0 +1,105 @@
++From 3d660ce5dcc7eab1fe0a469d282e30f1dada8b28 Mon Sep 17 00:00:00 2001
++From: Nikita Travkin <nikita@trvn.ru>
++Date: Mon, 27 Feb 2023 21:45:21 +0500
++Subject: [PATCH] net: wwan: qcom_bam_dmux: Track the device stats
++
++Signed-off-by: Nikita Travkin <nikita@trvn.ru>
++---
++ drivers/net/wwan/qcom_bam_dmux.c | 22 ++++++++++++++++++++--
++ 1 file changed, 20 insertions(+), 2 deletions(-)
++
++diff --git a/drivers/net/wwan/qcom_bam_dmux.c b/drivers/net/wwan/qcom_bam_dmux.c
++index 17d46f4d2913..d2be8534d46d 100644
++--- a/drivers/net/wwan/qcom_bam_dmux.c
+++++ b/drivers/net/wwan/qcom_bam_dmux.c
++@@ -21,6 +21,7 @@
++ #include <linux/wait.h>
++ #include <linux/workqueue.h>
++ #include <net/pkt_sched.h>
+++#include <linux/u64_stats_sync.h>
++ 
++ #define BAM_DMUX_BUFFER_SIZE		SZ_2K
++ #define BAM_DMUX_HDR_SIZE		sizeof(struct bam_dmux_hdr)
++@@ -359,6 +360,7 @@ static netdev_tx_t bam_dmux_netdev_start_xmit(struct sk_buff *skb,
++ 		if (!atomic_long_fetch_or(BIT(skb_dma - dmux->tx_skbs),
++ 					  &dmux->tx_deferred_skb))
++ 			queue_pm_work(&dmux->tx_wakeup_work);
+++		dev_sw_netstats_tx_add(netdev, 1, skb->len);
++ 		return NETDEV_TX_OK;
++ 	}
++ 
++@@ -366,9 +368,11 @@ static netdev_tx_t bam_dmux_netdev_start_xmit(struct sk_buff *skb,
++ 		goto drop;
++ 
++ 	dma_async_issue_pending(dmux->tx);
+++	dev_sw_netstats_tx_add(netdev, 1, skb->len);
++ 	return NETDEV_TX_OK;
++ 
++ drop:
+++	netdev->stats.tx_dropped++;
++ 	bam_dmux_tx_done(skb_dma);
++ 	dev_kfree_skb_any(skb);
++ 	return NETDEV_TX_OK;
++@@ -404,6 +408,7 @@ static void bam_dmux_tx_wakeup_work(struct work_struct *work)
++ static const struct net_device_ops bam_dmux_ops = {
++ 	.ndo_open	= bam_dmux_netdev_open,
++ 	.ndo_stop	= bam_dmux_netdev_stop,
+++	.ndo_get_stats64= dev_get_tstats64,
++ 	.ndo_start_xmit	= bam_dmux_netdev_start_xmit,
++ };
++ 
++@@ -453,6 +458,13 @@ static void bam_dmux_register_netdev_work(struct work_struct *work)
++ 		bndev->dmux = dmux;
++ 		bndev->ch = ch;
++ 
+++		netdev->tstats = netdev_alloc_pcpu_stats(struct pcpu_sw_netstats);
+++		if (!netdev->tstats) {
+++			dev_err(dmux->dev, "Failed to allocate stats for channel %u.\n", ch);
+++			free_netdev(netdev);
+++			return;
+++		}
+++
++ 		ret = register_netdev(netdev);
++ 		if (ret) {
++ 			dev_err(dmux->dev, "Failed to register netdev for channel %u: %d\n",
++@@ -508,12 +520,14 @@ static void bam_dmux_cmd_data(struct bam_dmux_skb_dma *skb_dma)
++ 
++ 	if (!netdev || !netif_running(netdev)) {
++ 		dev_warn(dmux->dev, "Data for inactive channel %u\n", hdr->ch);
+++		netdev->stats.rx_dropped++;
++ 		return;
++ 	}
++ 
++ 	if (hdr->len > BAM_DMUX_MAX_DATA_SIZE) {
++ 		dev_err(dmux->dev, "Data larger than buffer? (%u > %u)\n",
++ 			hdr->len, (u16)BAM_DMUX_MAX_DATA_SIZE);
+++		netdev->stats.rx_dropped++;
++ 		return;
++ 	}
++ 
++@@ -536,6 +550,7 @@ static void bam_dmux_cmd_data(struct bam_dmux_skb_dma *skb_dma)
++ 		break;
++ 	}
++ 
+++	dev_sw_netstats_rx_add(netdev, skb->len);
++ 	netif_receive_skb(skb);
++ }
++ 
++@@ -856,9 +871,12 @@ static int bam_dmux_remove(struct platform_device *pdev)
++ 	/* Unregister network interfaces */
++ 	cancel_work_sync(&dmux->register_netdev_work);
++ 	rtnl_lock();
++-	for (i = 0; i < BAM_DMUX_NUM_CH; ++i)
++-		if (dmux->netdevs[i])
+++	for (i = 0; i < BAM_DMUX_NUM_CH; ++i) {
+++		if (dmux->netdevs[i]) {
++ 			unregister_netdevice_queue(dmux->netdevs[i], &list);
+++			free_percpu(dmux->netdevs[i]->tstats);
+++		}
+++	}
++ 	unregister_netdevice_many(&list);
++ 	rtnl_unlock();
++ 	cancel_work_sync(&dmux->tx_wakeup_work);
++-- 
++2.39.2
++
+-- 
+2.43.0
+

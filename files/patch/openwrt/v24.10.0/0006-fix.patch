@@ -1,0 +1,198 @@
+From e0358247ce56ff58767cf0cb6373145aa70c2394 Mon Sep 17 00:00:00 2001
+From: a520a <a520ass@hotmail.com>
+Date: Fri, 24 Jan 2025 10:55:42 +0800
+Subject: [PATCH 1/2] fix
+
+---
+ .../base-files/lib/firmware/regulatory.db        |   1 -
+ .../base-files/lib/firmware/regulatory.db-debian | Bin 4388 -> 0 bytes
+ .../lib/firmware/regulatory.db-upstream          | Bin 4388 -> 0 bytes
+ .../base-files/lib/firmware/regulatory.db.p7s    |   1 -
+ .../lib/firmware/regulatory.db.p7s-debian        | Bin 1225 -> 0 bytes
+ .../lib/firmware/regulatory.db.p7s-upstream      | Bin 1182 -> 0 bytes
+ 6 files changed, 2 deletions(-)
+ delete mode 120000 target/linux/msm89xx/base-files/lib/firmware/regulatory.db
+ delete mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db-debian
+ delete mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db-upstream
+ delete mode 120000 target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s
+ delete mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-debian
+ delete mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-upstream
+
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db
+deleted file mode 120000
+index 369c078..0000000
+--- a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db
++++ /dev/null
+@@ -1 +0,0 @@
+-regulatory.db-upstream
+\ No newline at end of file
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-debian b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-debian
+deleted file mode 100644
+index 1fbb47cd75b6180f3737c83fd066852ab1e7124d..0000000000000000000000000000000000000000
+GIT binary patch
+literal 0
+HcmV?d00001
+
+literal 4388
+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
+
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-upstream b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-upstream
+deleted file mode 100644
+index 1fbb47cd75b6180f3737c83fd066852ab1e7124d..0000000000000000000000000000000000000000
+GIT binary patch
+literal 0
+HcmV?d00001
+
+literal 4388
+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
+
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s
+deleted file mode 120000
+index fab80f9..0000000
+--- a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s
++++ /dev/null
+@@ -1 +0,0 @@
+-regulatory.db.p7s-upstream
+\ No newline at end of file
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-debian b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-debian
+deleted file mode 100644
+index baeacbb809445cc0520df2f8b182ac991a301a25..0000000000000000000000000000000000000000
+GIT binary patch
+literal 0
+HcmV?d00001
+
+literal 1225
+zcmXqLVmZpjsnzDu_MMlJooPW6%Qk~1mQ75IjE4LMylk8aZ61uN%q&cdtPBR+2!)Ib
+znwSn6G%@WpXkuK-Bobc7B(t;O!3%{Z>E&C!Jrj3q`E?(p8)_~iH&C~fp@e}L8*?ZN
+zGY@}KYF>szN@`MOVxC@pQM!SGIIod`fuS)F8JQUxM@jG-8G-~1fE=&@UfoTMO30Q0
+zoyy$A$j<<D8W&R&BO}Ayhvf@Y7F?}NwPK%e^4rp7@+~sT?B4!MnUC>*54qZ1SJ}vL
+z>80(L>Hk{JhVDJtuNdCJW;r3vQLR$vl>O9pMnQf34G+1U|HSM2r?cGl-CpE-@n~7G
+z@5Iavh2mzfR&!aMojSWrx=&HO|0vUbmE#8-Hd-HPs3}|;c;~xSMEyqg#x8-2-zJL}
+zKKK<_DSG94|JuFz77x{G_k6Hx=-l$AFLT1}>0KX`m7ANavo@}I{d{JLmTBM0l)rBC
+zUOe?kG|YSUM^Yl>u(ba*2A6gjbJtg2PoC!I34L=u>yWFO@*=|^-*<|&e<O+xX&mia
+zdEp&nImgluO4{y~+UIAvZSDV?vS{mDCT2zkM&u9zMh7s27#S2?{;iyMclN7us-+ws
+zw1dA#naOx5*I#h75z^k-;MXM@EAOyeO~dGLG@FL5EeEF@<ID8N#?M4uE#HYZ-*)<6
+zZ~A48*zH|Aq!bh#|9_tJKQ&KN?85%u`yM*QX7x(X-c@W#ZsxOmy<R|T!sS2D4);%w
+zF55r*>x@gmY~4SWu*{ZD%9^|8nK$pr>tV^Fj21onKDr#SP=9c~=$h@5@7~szHu79;
+z&Xp5j$<*w~d{BG+_Lj(^-nll;>yOoLR}>BEdO15=?}fUJy>83zSxQ{<vs9m1J}D{Q
+zrd6;?_Vk%63#8QwlUa@mDSGUhq|Ua&E_b2x(o0(3PaRQv5iS4ZPUjtYmP&iWCdL!M
+zRB{BE+6|2GB{AG794UV+$TX0ECwWe0L*(pYAcK%$HRJ~-cOwHc0}~@7Q*#4@C<A?j
+zEQ_HMi^9IGdDG=izgVzCbAH~h90vyZ7^%3$k>58PPhjkBn;Y>MIWmFCou!G9p(w#X
+zZ<q1UuEa~1f9$yx@>VeKz?4uGlV=7gYi1wqP6&Q5>)aCgL%!3me(Ud-klvcK;6_IL
+ztat3?KN^fToeTW5FLCMiJy+u&ukaM{kE;Cgyo#IuUCi_I4o#K;r|R3Uyoj@X{@|)q
+z#U}o(arWsie?K^DVR*RNeA2wu4OtdD43B7T?P5szC;WGDWWu4TjJ@CG{$D)ma$2%a
+zFYitGv#?7`<DM0qF8=mXBROq(@9I)HoA-04tSrh}c{s~-bE+VVNtfAwyE3yCGnm^C
+z9t<vYE556>^Tf^B8zras)_Yp96#U8;ZaBmI^nHYw*26O!zkh8@_!H*3FzKLu=K{Hx
+M5Bz>g9}>v}00kQJbpQYW
+
+diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-upstream b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-upstream
+deleted file mode 100644
+index 4facfea9d475b9912e9285e76b2488980af43a60..0000000000000000000000000000000000000000
+GIT binary patch
+literal 0
+HcmV?d00001
+
+literal 1182
+zcmXqLVwuIpsnzDu_MMlJooPW6OSeH2OFI)IqanWmFB@k<n+IbmGYb<VD}w<yLLuXV
+zCZ-hzO-xG+nizYSI2kte-gjU3^W1Wf7N}v2+(0eDhJptCY|No7%sd>$Y57IP8L6oT
+z3gWzm=7t6aW`>p~2F9jQ68uJnhUNyAhDJ~U?An?bm5_}Gx`?@nk)HwR0xqT|Mn;CM
+z4v*((v{*8Kvb>(A<7gqerfz9-p=#ZPnvA>o_BXFbTFkG>3OdBBrCXQwMQ*cDfkO0^
+z=|;AN-PY0^;v(6JN5Z?OiOKv`xysG?GefZD_o+ahi>{Kl1YEjq{wrJgH$hi|TVv`b
+z-B%qmc3cco{17bvktzSB+w95l8WZ@}nElF7E({O*cINW^TCJPX#jdY+skgqbs$Y7#
+z;kbd>rQmmO*2q0K{AjjlPV%wT=z7)CjD@c**D=J*io2m8VN}kpDU>E>R{VTAi=+9*
+zjYZmD7HTTgOsnM9zHsB-i5&aMzmLAF2oe;PuKM;UW9IYUZelHuk1u@o;F8<bhezTU
+zq<y({<o{GzCT2zkM&u9zMgTB`7#Z4`Z+&Vyba#D?i+<bXc%R80JO8nZ?^gV-s_eH)
+ziAQW_@w&NgHKjKXdxpF3H{L$|%~yxg18zzm7R1h}6khm$$722JJ~sOk+n!`;d@_kq
+zwl_NPY%Twq^Pwf~#g`ddw{t6nsnpKrT*=oq&pdigF4N7P69HL|B0r0<z1rloHR9i{
+zi;dw@?>AX=M0{IyM6Wwa{mIf7OHQT7tSL%AoG*M>*R=9_*YmGe6b-ztep`IAGVBw-
+z!1vk<fs^&!f7E(&wS)?B)%sb>YwQ2f*qmwdu%Ti1qxCzl8GMutX;+>(KaknSwU#Nh
+zc=g}&Q_k>OCH%D!(HApbsVILsU}Hb?y9H@0#VSP%n;5qNQ^_V^qBc;#nzqnVFjAsl
+zkZB+RPtu&shRAuqKn5YhYRE6nYh+|#VqjrtYGQ0;8D*f4kYzDcVo}()HE+7y=@$!j
+zXwJ|3mE*u5A0rjFIP&{u;|Yx2ZF3_YBS#%DakDfrGIY<oJm=IDlip1SygOIzZZunT
+zFJt+Vd(%B@QoZN*sWf}DZJh9Wj>P|KFZ!0w*V<rl(}T}bd;6Am9t;;g&-j{pO<mJ=
+z$%?0vJky@mhB@s}3Jrb9D!TU2JFgYfN>6n^UAb1^O^41Ok@bs$lyoNVKEldnx2=DV
+z&B3<zd#8J=+@^@ljSO&`AmW;;D4scO_5y8YiSYe_^_+RLKPKtUK9KEtw#(G#i`(Lx
+znp0N^EMYWUnEv@*I^X8Bjc4}wU9We_+vvAT*(vGpyDJ+%UVgDD#I<Dm{QU_hkGK3;
+ybYZW$*n#v%ufFYj_`4|j_$e7J$&Jx*Q=iPMWc_h9MQMSe^oRTf7tdeFGXnr@1mBYY
+
+-- 
+2.43.0
+
