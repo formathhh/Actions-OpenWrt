@@ -41,7 +41,7 @@ on:
       p2_sh:
         description: 'DIY P2 SH (OR PATCH)'
         required: true
-        default: 'diy-patch.sh'
+        default: 'diy-patcham.sh'
 
 env:
   REPO_URL: ${{ inputs.repo_url }}
