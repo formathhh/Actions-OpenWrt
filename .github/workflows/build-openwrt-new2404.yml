@@ -69,6 +69,10 @@ jobs:
           sudo timedatectl set-timezone "$TZ"
           sudo mkdir -p /workdir
           sudo chown $USER:$GROUPS /workdir
+          # todo fix mkbookimg
+          sudo rm -rf /usr/bin/mkbootimg
+          sudo wget https://d.kstore.dev/download/5190/openwrt/mkbootimg -O /usr/bin/mkbootimg
+          sudo chmod +x /usr/bin/mkbootimg
 
       - name: Clone source code
         working-directory: /workdir
