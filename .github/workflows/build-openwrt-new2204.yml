@@ -1,12 +1,3 @@
-#
-# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-# Description: Build OpenWrt using GitHub Actions
-#
 
 name: Build OpenWrt Use Ubuntu 2204
 
@@ -35,13 +26,13 @@ on:
         required: true
         default: 'msm8916.config'
       p1_sh:
-        description: 'DIY P1 SH'
-        required: true
-        default: 'diy-part1.sh'
-      p2_sh:
-        description: 'DIY P2 SH (OR PATCH)'
+        description: 'DIY P1 SH (OR PATCH SH)'
         required: true
         default: 'diy-patcham.sh'
+      p2_sh:
+        description: 'DIY P2 SH'
+        required: true
+        default: 'diy-part2.sh'
 
 env:
   REPO_URL: ${{ inputs.repo_url }}
@@ -89,6 +80,7 @@ jobs:
       - name: Load custom feeds
         run: |
           [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+          [ -e build-files ] && mv build-files openwrt/build-files
           chmod +x $DIY_P1_SH
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P1_SH ${{ env.PATCH_VERSION }}
@@ -101,7 +93,7 @@ jobs:
 
       - name: Load custom configuration
         run: |
-          [ -e files ] && mv build-files openwrt/build-files
+          [ -e files ] && mv files openwrt/files
           [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
           chmod +x $DIY_P2_SH
           cd openwrt
@@ -138,6 +130,7 @@ jobs:
         run: |
           df -hT
           cd openwrt
+          tree bin
           tar -czf bin.tar.gz bin
           tar -czf dl.tar.gz dl
           tar -czf build_dir.tar.gz build_dir
@@ -176,6 +169,7 @@ jobs:
         if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
         run: |
           cd openwrt/bin/targets/*/*
+          tar -czf targets_packages.tar.gz packages
           rm -rf packages
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "status=success" >> $GITHUB_OUTPUT
@@ -194,7 +188,7 @@ jobs:
           curl -fsSL git.io/file-transfer | sh
           ./transfer wss -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wenshushu.log
           echo "::warning file=wenshushu.com::$(cat wenshushu.log | grep https)"
-          echo "::set-output name=url::$(cat wenshushu.log | grep https | cut -f3 -d" ")"
+          echo "::set-output name=url::$(cat wenshushu.log | grep Download | grep https | cut -f3 -d" ")"
 
       - name: Generate release tag
         id: tag

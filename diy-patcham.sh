@@ -2,7 +2,7 @@
 
 git config --global user.email "githubaction@hotmail.com"
 git config --global user.name "githubaction"
-# patch
+# git am 
 for patch in `find build-files/patch/openwrt/${1}/*.patch | LC_ALL=C sort -u`
 do
 	git am $patch
