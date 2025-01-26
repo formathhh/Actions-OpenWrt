@@ -124,13 +124,13 @@ jobs:
           find dl -size -1024c -exec rm -f {} \;
 
       - name: Restore cached 
-	id: cache-openwrt-restore
-	uses: actions/cache/restore@v4
-	with:
-	  path: |
-	    openwrt/build_dir
-	    openwrt/staging_dir
-	  key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}
+        id: cache-openwrt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            openwrt/build_dir
+            openwrt/staging_dir
+          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}
 
       - name: Compile the firmware
         id: compile
@@ -150,14 +150,14 @@ jobs:
           tree bin
 
       - name: Save cached 
-	id: cache-openwrt-save
-	uses: actions/cache/save@v4
-	if: steps.compile.outputs.status == 'success' && !cancelled()
-	with:
-	  path: |
-	    openwrt/build_dir
-	    openwrt/staging_dir
-	  key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}
+        id: cache-openwrt-save
+        uses: actions/cache/save@v4
+        if: steps.compile.outputs.status == 'success' && !cancelled()
+        with:
+          path: |
+            openwrt/build_dir
+            openwrt/staging_dir
+          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}
 
       - name: targz build dir
         if: env.UPLOAD_BIN_DIR == 'true' && !cancelled()
