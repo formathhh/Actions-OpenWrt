@@ -1,7 +1,7 @@
-From a0c2bf4732a11498705aad1255680bdc9230c119 Mon Sep 17 00:00:00 2001
+From 32e9f1c123fd33e6b664e76c9f6cb8c37453a0f9 Mon Sep 17 00:00:00 2001
 From: a520a <a520ass@hotmail.com>
-Date: Wed, 22 Jan 2025 18:44:33 +0800
-Subject: [PATCH 5/5] up firmware
+Date: Sun, 26 Jan 2025 11:30:20 +0800
+Subject: [PATCH] add firmware
 
 ---
  .../lib/firmware/qcom/venus-1.8/venus.b00     | Bin 0 -> 212 bytes
@@ -11,12 +11,6 @@ Subject: [PATCH 5/5] up firmware
  .../lib/firmware/qcom/venus-1.8/venus.b04     |   1 +
  .../lib/firmware/qcom/venus-1.8/venus.mbn     | Bin 0 -> 968528 bytes
  .../lib/firmware/qcom/venus-1.8/venus.mdt     | Bin 0 -> 6812 bytes
- .../base-files/lib/firmware/regulatory.db     |   1 +
- .../lib/firmware/regulatory.db-debian         | Bin 0 -> 4388 bytes
- .../lib/firmware/regulatory.db-upstream       | Bin 0 -> 4388 bytes
- .../base-files/lib/firmware/regulatory.db.p7s |   1 +
- .../lib/firmware/regulatory.db.p7s-debian     | Bin 0 -> 1225 bytes
- .../lib/firmware/regulatory.db.p7s-upstream   | Bin 0 -> 1182 bytes
  .../msm89xx/base-files/lib/firmware/wcnss.b00 | Bin 0 -> 436 bytes
  .../msm89xx/base-files/lib/firmware/wcnss.b01 | Bin 0 -> 6824 bytes
  .../msm89xx/base-files/lib/firmware/wcnss.b02 | Bin 0 -> 13064 bytes
@@ -26,8 +20,8 @@ Subject: [PATCH 5/5] up firmware
  .../msm89xx/base-files/lib/firmware/wcnss.b10 | Bin 0 -> 655360 bytes
  .../msm89xx/base-files/lib/firmware/wcnss.b11 | Bin 0 -> 43304 bytes
  .../msm89xx/base-files/lib/firmware/wcnss.mdt | Bin 0 -> 7260 bytes
- .../wlan/prima/WCNSS_qcom_wlan_nv.bin         | Bin 29816 -> 29816 bytes
- 23 files changed, 3 insertions(+)
+ .../wlan/prima/WCNSS_qcom_wlan_nv.bin         | Bin 0 -> 29816 bytes
+ 17 files changed, 1 insertion(+)
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.b00
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.b01
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.b02
@@ -35,12 +29,6 @@ Subject: [PATCH 5/5] up firmware
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.b04
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.mbn
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.mdt
- create mode 120000 target/linux/msm89xx/base-files/lib/firmware/regulatory.db
- create mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db-debian
- create mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db-upstream
- create mode 120000 target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s
- create mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-debian
- create mode 100644 target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-upstream
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wcnss.b00
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wcnss.b01
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wcnss.b02
@@ -50,6 +38,7 @@ Subject: [PATCH 5/5] up firmware
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wcnss.b10
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wcnss.b11
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wcnss.mdt
+ create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin
 
 diff --git a/target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.b00 b/target/linux/msm89xx/base-files/lib/firmware/qcom/venus-1.8/venus.b00
 new file mode 100644
@@ -19978,181 +19967,6 @@ zBr<a!Lhzkr5Wm=TQ2l1d7R4gha0YrCEe~8VnlD;I8F^jTmG;;Qv;LZ$&H0!*0hfIu
 z6|GeoZ>6?x_6TrFtevbF$m5x{-f8c7^EqyD++A+?3fCP)%*3LoZOv<*5lZX!XOkFB
 zZH~7cvf7%J?FaZ}iB6%1_TG$2%Q2_FsF?ihet7u=U&c?pIOaq2wq6epkq3XAI2K%U
 hXJ%n6D6pWwf&vQ)EGV#`z=8q`3M?qFpuo=x{0qkygqr{W
-
-literal 0
-HcmV?d00001
-
-diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db
-new file mode 120000
-index 0000000..369c078
---- /dev/null
-+++ b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db
-@@ -0,0 +1 @@
-+regulatory.db-upstream
-\ No newline at end of file
-diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-debian b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-debian
-new file mode 100644
-index 0000000000000000000000000000000000000000..1fbb47cd75b6180f3737c83fd066852ab1e7124d
-GIT binary patch
-literal 4388
-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
-
-literal 0
-HcmV?d00001
-
-diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-upstream b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db-upstream
-new file mode 100644
-index 0000000000000000000000000000000000000000..1fbb47cd75b6180f3737c83fd066852ab1e7124d
-GIT binary patch
-literal 4388
-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
-
-literal 0
-HcmV?d00001
-
-diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s
-new file mode 120000
-index 0000000..fab80f9
---- /dev/null
-+++ b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s
-@@ -0,0 +1 @@
-+regulatory.db.p7s-upstream
-\ No newline at end of file
-diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-debian b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-debian
-new file mode 100644
-index 0000000000000000000000000000000000000000..baeacbb809445cc0520df2f8b182ac991a301a25
-GIT binary patch
-literal 1225
-zcmXqLVmZpjsnzDu_MMlJooPW6%Qk~1mQ75IjE4LMylk8aZ61uN%q&cdtPBR+2!)Ib
-znwSn6G%@WpXkuK-Bobc7B(t;O!3%{Z>E&C!Jrj3q`E?(p8)_~iH&C~fp@e}L8*?ZN
-zGY@}KYF>szN@`MOVxC@pQM!SGIIod`fuS)F8JQUxM@jG-8G-~1fE=&@UfoTMO30Q0
-zoyy$A$j<<D8W&R&BO}Ayhvf@Y7F?}NwPK%e^4rp7@+~sT?B4!MnUC>*54qZ1SJ}vL
-z>80(L>Hk{JhVDJtuNdCJW;r3vQLR$vl>O9pMnQf34G+1U|HSM2r?cGl-CpE-@n~7G
-z@5Iavh2mzfR&!aMojSWrx=&HO|0vUbmE#8-Hd-HPs3}|;c;~xSMEyqg#x8-2-zJL}
-zKKK<_DSG94|JuFz77x{G_k6Hx=-l$AFLT1}>0KX`m7ANavo@}I{d{JLmTBM0l)rBC
-zUOe?kG|YSUM^Yl>u(ba*2A6gjbJtg2PoC!I34L=u>yWFO@*=|^-*<|&e<O+xX&mia
-zdEp&nImgluO4{y~+UIAvZSDV?vS{mDCT2zkM&u9zMh7s27#S2?{;iyMclN7us-+ws
-zw1dA#naOx5*I#h75z^k-;MXM@EAOyeO~dGLG@FL5EeEF@<ID8N#?M4uE#HYZ-*)<6
-zZ~A48*zH|Aq!bh#|9_tJKQ&KN?85%u`yM*QX7x(X-c@W#ZsxOmy<R|T!sS2D4);%w
-zF55r*>x@gmY~4SWu*{ZD%9^|8nK$pr>tV^Fj21onKDr#SP=9c~=$h@5@7~szHu79;
-z&Xp5j$<*w~d{BG+_Lj(^-nll;>yOoLR}>BEdO15=?}fUJy>83zSxQ{<vs9m1J}D{Q
-zrd6;?_Vk%63#8QwlUa@mDSGUhq|Ua&E_b2x(o0(3PaRQv5iS4ZPUjtYmP&iWCdL!M
-zRB{BE+6|2GB{AG794UV+$TX0ECwWe0L*(pYAcK%$HRJ~-cOwHc0}~@7Q*#4@C<A?j
-zEQ_HMi^9IGdDG=izgVzCbAH~h90vyZ7^%3$k>58PPhjkBn;Y>MIWmFCou!G9p(w#X
-zZ<q1UuEa~1f9$yx@>VeKz?4uGlV=7gYi1wqP6&Q5>)aCgL%!3me(Ud-klvcK;6_IL
-ztat3?KN^fToeTW5FLCMiJy+u&ukaM{kE;Cgyo#IuUCi_I4o#K;r|R3Uyoj@X{@|)q
-z#U}o(arWsie?K^DVR*RNeA2wu4OtdD43B7T?P5szC;WGDWWu4TjJ@CG{$D)ma$2%a
-zFYitGv#?7`<DM0qF8=mXBROq(@9I)HoA-04tSrh}c{s~-bE+VVNtfAwyE3yCGnm^C
-z9t<vYE556>^Tf^B8zras)_Yp96#U8;ZaBmI^nHYw*26O!zkh8@_!H*3FzKLu=K{Hx
-M5Bz>g9}>v}00kQJbpQYW
-
-literal 0
-HcmV?d00001
-
-diff --git a/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-upstream b/target/linux/msm89xx/base-files/lib/firmware/regulatory.db.p7s-upstream
-new file mode 100644
-index 0000000000000000000000000000000000000000..4facfea9d475b9912e9285e76b2488980af43a60
-GIT binary patch
-literal 1182
-zcmXqLVwuIpsnzDu_MMlJooPW6OSeH2OFI)IqanWmFB@k<n+IbmGYb<VD}w<yLLuXV
-zCZ-hzO-xG+nizYSI2kte-gjU3^W1Wf7N}v2+(0eDhJptCY|No7%sd>$Y57IP8L6oT
-z3gWzm=7t6aW`>p~2F9jQ68uJnhUNyAhDJ~U?An?bm5_}Gx`?@nk)HwR0xqT|Mn;CM
-z4v*((v{*8Kvb>(A<7gqerfz9-p=#ZPnvA>o_BXFbTFkG>3OdBBrCXQwMQ*cDfkO0^
-z=|;AN-PY0^;v(6JN5Z?OiOKv`xysG?GefZD_o+ahi>{Kl1YEjq{wrJgH$hi|TVv`b
-z-B%qmc3cco{17bvktzSB+w95l8WZ@}nElF7E({O*cINW^TCJPX#jdY+skgqbs$Y7#
-z;kbd>rQmmO*2q0K{AjjlPV%wT=z7)CjD@c**D=J*io2m8VN}kpDU>E>R{VTAi=+9*
-zjYZmD7HTTgOsnM9zHsB-i5&aMzmLAF2oe;PuKM;UW9IYUZelHuk1u@o;F8<bhezTU
-zq<y({<o{GzCT2zkM&u9zMgTB`7#Z4`Z+&Vyba#D?i+<bXc%R80JO8nZ?^gV-s_eH)
-ziAQW_@w&NgHKjKXdxpF3H{L$|%~yxg18zzm7R1h}6khm$$722JJ~sOk+n!`;d@_kq
-zwl_NPY%Twq^Pwf~#g`ddw{t6nsnpKrT*=oq&pdigF4N7P69HL|B0r0<z1rloHR9i{
-zi;dw@?>AX=M0{IyM6Wwa{mIf7OHQT7tSL%AoG*M>*R=9_*YmGe6b-ztep`IAGVBw-
-z!1vk<fs^&!f7E(&wS)?B)%sb>YwQ2f*qmwdu%Ti1qxCzl8GMutX;+>(KaknSwU#Nh
-zc=g}&Q_k>OCH%D!(HApbsVILsU}Hb?y9H@0#VSP%n;5qNQ^_V^qBc;#nzqnVFjAsl
-zkZB+RPtu&shRAuqKn5YhYRE6nYh+|#VqjrtYGQ0;8D*f4kYzDcVo}()HE+7y=@$!j
-zXwJ|3mE*u5A0rjFIP&{u;|Yx2ZF3_YBS#%DakDfrGIY<oJm=IDlip1SygOIzZZunT
-zFJt+Vd(%B@QoZN*sWf}DZJh9Wj>P|KFZ!0w*V<rl(}T}bd;6Am9t;;g&-j{pO<mJ=
-z$%?0vJky@mhB@s}3Jrb9D!TU2JFgYfN>6n^UAb1^O^41Ok@bs$lyoNVKEldnx2=DV
-z&B3<zd#8J=+@^@ljSO&`AmW;;D4scO_5y8YiSYe_^_+RLKPKtUK9KEtw#(G#i`(Lx
-znp0N^EMYWUnEv@*I^X8Bjc4}wU9We_+vvAT*(vGpyDJ+%UVgDD#I<Dm{QU_hkGK3;
-ybYZW$*n#v%ufFYj_`4|j_$e7J$&Jx*Q=iPMWc_h9MQMSe^oRTf7tdeFGXnr@1mBYY
 
 literal 0
 HcmV?d00001
@@ -52930,7 +52744,8 @@ literal 0
 HcmV?d00001
 
 diff --git a/target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin b/target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin
-index 88f18cb3491a9e90c88fcb96d1bc58ba5d36691f..0fda5de093e3b8359908476e83a8095f43088976 100644
+new file mode 100644
+index 0000000000000000000000000000000000000000..0fda5de093e3b8359908476e83a8095f43088976
 GIT binary patch
 literal 29816
 zcmeHQS#woo7QHtl5T+19NJ7AXfC3UQj*S5k5uDno6>&yXL`Bh-77T;>(m$pDN>_DN
@@ -53029,115 +52844,8 @@ zHs62YA*vrlOiRspSTmJ_$Ys&xh5RqY%JaYVzB+}sbf<sdFPZeGlkvZ7vbJ@|zPF|I
 z=U=*C>Gu}$S?B96<W>InOZRIbua|zO^L5kDn$K>O2d40M{bu@R`VK8^;}7W!&-KrK
 v%O{Lw|4ZYs_E>vsdlJ{9y7=|YzD{QmH<v*-<LA@(`-->ngMTygc6j_B(?e6M
 
-literal 29816
-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
-Juy8Hy_#cR!TMGaH
+literal 0
+HcmV?d00001
 
 -- 
 2.43.0

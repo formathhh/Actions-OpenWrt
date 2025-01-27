@@ -15,7 +15,6 @@ Subject: [PATCH 1/5] msm8916
  .../base-files/etc/init.d/uim_selection       | 101 ++
  .../msm89xx/base-files/etc/init.d/usb_network |  74 ++
  .../lib/firmware/msm-firmware-loader/.keep    |   0
- .../wlan/prima/WCNSS_qcom_wlan_nv.bin         | Bin 0 -> 29816 bytes
  .../base-files/sbin/msm-firmware-loader.sh    | 132 +++
  target/linux/msm89xx/config-6.6               | 907 ++++++++++++++++++
  target/linux/msm89xx/image/Makefile           |  44 +
@@ -37,7 +36,6 @@ Subject: [PATCH 1/5] msm8916
  create mode 100755 target/linux/msm89xx/base-files/etc/init.d/uim_selection
  create mode 100755 target/linux/msm89xx/base-files/etc/init.d/usb_network
  create mode 100644 target/linux/msm89xx/base-files/lib/firmware/msm-firmware-loader/.keep
- create mode 100644 target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin
  create mode 100755 target/linux/msm89xx/base-files/sbin/msm-firmware-loader.sh
  create mode 100644 target/linux/msm89xx/config-6.6
  create mode 100644 target/linux/msm89xx/image/Makefile
@@ -556,123 +554,6 @@ index 0000000..2b7b3b6
 diff --git a/target/linux/msm89xx/base-files/lib/firmware/msm-firmware-loader/.keep b/target/linux/msm89xx/base-files/lib/firmware/msm-firmware-loader/.keep
 new file mode 100644
 index 0000000..e69de29
-diff --git a/target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin b/target/linux/msm89xx/base-files/lib/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin
-new file mode 100644
-index 0000000000000000000000000000000000000000..88f18cb3491a9e90c88fcb96d1bc58ba5d36691f
-GIT binary patch
-literal 29816
-zcmeHQTa%RK5uVu-%NZ8fU0BW{$K|Mkr=U?(Ktx4QL{vmW(5Q(gLX_xD?(+w7nF}jd
-z`3qJVLz!quDzQo{<%N}hkZUB*^K|$7zTY=9%UK}IH?_O7JA0V!e){RByWfFx=gysL
-zG@3olW+PvAzeiu_&0jvxy`I5IjYg-p`v)40@@)n_|95|*@dvz}#9R3o@7Eva=kdm$
-zi=TZM_vhj*9*du=KmIm;zW&DV;os)Z*B|5O<>SA{=k+%}&-gp%`}sfinfI>b_x%R3
-zxscy?HNI~mEOd%x`1*X0*JBwNVVvm4@^Rj;KhBtxZx{P`{rN?l<N4SBetgcy`TX{H
-ztmEtD$M_xP_m$5z?q5&e*Nt^6=DM*qpAfHs)q36#_vPbd9`Nh+yeuE*{rcmP8}adC
-zAFn^ZZeDlJ?7FY&u{_`7Wh}d~&NU&hTYilExtcYhInr_)ZVopV>o(FTZq3<t>lyXi
-zaNIMr*k{eferq&`)BVM`->3-5xlP{2berE8ZH(cTFMejvAb+iU@0xo+F|){(@8>k<
-z)Sp^ls>F}qw{I1$hzY-yzfbq`Z;an%A1l9w-^Ab4y{<bCbifK@JLEBRZt2V`Jq_K&
-zH;GHSymH;e`f{I8b5^GtesfWQ8Y35m6|WtOF~8{6pvw);b@ub^kus59fx58UaJpwU
-z>8o8{xy}N71)olHL5JHc{E@c2k`U6x$`y>mjqt0QGdtb7Sh*46_d`C%=8R6aE>?cX
-zINS(-t2wRH?M8U^-RJm2dZ7Qoy}Ru1H3z58m_2uNZ1J*NZe6uz-S~!0o44F{`yJcv
-zyzB0Jf3$u3efR(Pfd?Pl@zBE$KeBV@uHCyIeRR)bkL}(2_~TDJ`Q*NRPd&AN|Na99
-zo__k7XAT}b`0TUK9y;{gbI%<<eE9k2U%>U^i!UBIa^$6#UOIa8=*us^{0gq0;5vru
-zr?`&edKK4exPFG~bzE=odXv}Bas7hVTfE-p^$xFhdA-N$1g~H6I?3x-yx!OK0k2cM
-ze$DGcTpzVuZhzn4w3%~87A#)6e8oyRVB_X3x8JdK+nsmceGfbU2fzb6;DJXT*|}?%
-zI{@~>0q%hV<^i}Md*FF_ps=3~pa(iRAbCJ8n9u`qfjp31kUda$LGnP|1+>4}KR9jH
-zoRP6bOK(}Ray7#b>plFkUh&`YP*}hF(LId6nUC-z{xn|km+=<=upZ&J=zI7(8Q(to
-zox`8wpTl3ozfJh-#sdu&|DJ)V4F94fz<=_9;;#e<{KEk?{HFw{Mjs9c{2Tl;{)_O}
-z;NN0D!C#m!_+MG{hy4xUf7ZPDi-7-IZe6{0-TE2;kpF;x&VR*!ui(E=`S0jIFZeU|
-zYsM$!S5iM)U(I}lzEkE`1JAT?6Zaqji+}In^r3m93l=i|tJaQh+_X8t-`KCP9^|*j
-z$nS}i`c>>72J?aXT8Xbc?Uiv4&TBQi4ddl>Pkfi?Zepv$dXInalv#6zN6q>*>(+z)
-zZzK2J#pE~gSMrPb%y<$XB5#TBynpCW9rjB5#CVzT+wr|yUg7!#cJf>bcZKE|?4bAy
-zwK-cK`0p7M`!8F;>KFFkWz_G`2k-9&@g>?Tjkl7gjE}h2>z#}*YF!cZTA2%^M}>>}
-z7G@*Xh0&K{bBq0b(}#xVFI+0@Z`ia2!AIf0hh<N=7wM_wTg7+6XV}AX2fQ<VE#xZj
-zMSVw#2hKg*h0Pvnujf|G-CnQa<<r0H`^x{`>9gmJ%wM=9ia+u1+K1F%IHB-D6#yZ6
-zDw&@Yk0pLp?Gy;8yCX4uBz+qU5CoS4eD|F3Uq2i$I<{=ZN}zvZaG!LK*-r3__BsMU
-zV$YRMJF`9IVYKVJ8UkoC)7@nq46Y!+t-bOH@c7RI`z>FwYR&itQs12fKQ%84zNtMI
-zyMVq4-3<H}K=fAL1NKIAf%+DcUCm~LS<O7cNb)-5CoErA2LB8{;lFY%ls}Z;)@_nK
-z^Z+HVg3po%);H3RdUr^Sk7B1<S4jL4@Fwof4b-)@$QQYv%6cXCS26p=|2;E@h9P}d
-zty{lo%N^TL^tRte!(q4ay%~Lg^46nn)g5HVjz*G(y^I<er#XS#h&@wW#<$>I#`+X{
-zl&c%*_E53>=lj0NXaPqcf>;OEtX((0e*H$(f^DQi)WUmzWNLtf2wb=tbYf69kkl~x
-z0d)k#2`+03(HejyD;gmh!+PehBUC$RWT8G#J)lV9T~8RbeCqa$3&{>@^Cl8}H8*ta
-z4-a(X-^G77|GWIx<^P+q{$T`yA;8G|u_YJ+u39YtATg*(0NOzl0QcD_)aySxLz@Tt
-zKo}B{Bhe>gDC|1GMF2;mCIM_b#`$obj!FcCa11dO>N#ntw=@P;r(m+#RRAWQQUMn!
-z0;2jgX#ZT8zj(>gWh+*%UW*~v2F!st2gN8P6wr3FKM5c?K!bsph|7McWS@$2F3L+f
-zNJ_}&!;nFx4{StUG)^6Qh<0u;HDr=m&BMj0p=5uvf6C0+b1(#3w0OxfHo_bP!v*ev
-zqygyxO~W$;gaOXP<pU@|N5MXKLx@3Bf^I(@P<kMwU>*{O3rq}hKp1L}YXR$`tckLw
-zG4+h8gR;^8gt9v9@0~Pt))3;q5Y}r3OaYt$0P~dskihK_up8FH{K9_i1snxb!wvyg
-z!ji!i^9g`FB(^c>ML8g8V(vjM+yh}hK5_;;ggMCABBTI(5D17QFbI$aI22@a$c+fw
-zfRqI_C#WCDxe$2(C)7Y-1JnA%)JNqtH?#+W&ktIWz)eU>h*l^h`<wlfL4amH@Lx4w
-zB#=|UazJg6JHUxhNl>7GT!<{lY*65!AVVP``ylVjD#^fgSzeY^`f1-2ByRLEie*Fw
-zM0P~#HM9MFlehyMh5*7A;8xkM98mb31dALX2cS!CZ$E|w6&k2IfMn<xU^NIPI7|;%
-zNytT^+!+E0?t@GT#W)F0a8}4*@T_P%Oj668>~A!B`n3gR4Or?3C`bSv;7HsHAu>RP
-z&~u=g1R?^h2<l9@KN{mGhyjA+1G<1dU}4ly#b|-cQ-Yz`9?=yYx2LrkOJ$(w6ILxv
-zPrCh07(Zn?(tniMk0p>Kz&IuVQ2~7fz|0r_Ycy0%ecuUt1uSB2MUX*H_21b)LT=Uu
-z32Kleb7`-wODEnKPqZ(6hZiTQG&}}v+7^Q*-TvNz$<t=S`h}!E6u%UBUjq6j1faK>
-zm==LjJ~0vYRJXbx`_Pzt6e#!bMsRIUV6kO<WiUig?8n=$4C*s9TaCM&ZY2ak7^(G;
-z?+w6(z7<z>Eb!m#1OA8R%@+Yc149FjTMY~ha4V4MzsCQ&Sp)<6HV&%zq`efZ06*cL
-z#gNsogguw$&H#1TLl-0fI1BK=z{Hb9t;jz}_BZ<m2B$IuM%;evf!DeOkO*Y<`xMM2
-zkkOy#eiFi<|2q98F{ng{+|Oc|I>^{hsUO&o2P!V;cyIvKpn7tma6?-^SoWWc{HGgw
-z!GA1)6$+pV&Lj{rSSm=HkyHV8S}PD3C<_2fAY5R_L`o@CVLv$`*stOOa$jP<&W9)H
-zgXDxd0k(AlG9<+x#~|Q<Dbr_$3Jem24wM554FEQn&;w-}WG(E37$u-x73}N-!5}Jt
-zV9+)hTGr^qftJb0hl&rxh9^!W`-y*8KO2i+oP!_>@+3s?pfP|_z&b&bfHn%w8X$K9
-zl`P0SKn#=)=&S>B5lm!|eUMl(IU!L(<seaFh3Y{f5`%A>lKrgzlO|7_Aqfl#BnQ|W
-zJY@hnK^K7$|Kxy@1tJG3G*IZk2_29ikR711n8_faAhCg@K&uB*GNf`*Jyt*$B>S7a
-zng7@TLII@cZ@DdX!59O;_Nw}c4xnBETA*Jo0nUG^0wgWaLHcAZ5M>~l%&kiW`pIH$
-zUvzjZhuoEbZQPRm$bV$O<f%*nSHa7cGYMiA!e)?ZU_vk{L34(wVQYv01?VDl1jq(R
-z1fU`Ffve)8FGv{?BFVI|s8Q;;lYa~q28$vyvX_(_85%ler|giY1di9=DD21G{z>q_
-zv>7vJ4b7Q1JUV}j-LUbXQvsYnMF==h4s$L-T^PHesEberstfc)dsi?u=nF!G&WP+#
-zkuZkH{t!u+L(C&`i8W0EjVtB?H>Ms!Tq$ErS|v4U-Z_@-X97%N_=gaFHNiFo$ypFG
-zpc4B~!(Ir@+!T03-sC_v@LmlILqim_mc-IRmc=?7RE(o?bj#2kSbtCizKlFJvDn3i
-z{Q&<YkNXG|AWnjj1Au**Zz6!`-)f^Umw^#*-v`!=4>5=!Bfdrb7sNFQ^zJVUAWFch
-zk%n#40G;0_?QFF%yMbI`Cr#xLcL`-Ru2)|T`;q;VrWo?)VhXxo%*J4<flz@g0RTRc
-zul%<%kZ|uHD7(R!i7@?h{uA&zIpt#LX;T4eiyY8pyfdOpF`R8xcNFgw`|_QcUbEi}
-zxA)kxCi`&*1u(l{bOEy;tsqB%n1*5<TqZvYAyPky0k(yl2*?Ez1eL^h5-gIzi$hBM
-z5C(12p8b<0y_9l$7e&q+NaUn~49l!g-O%|A+21|?+CBf;J^$K0|Ekl!I04r^|GJsy
-ze>v?yo2xOeodWBgf7L5qsAMq4uz4oyl4duy%9P|p?J=Ec%0rc==uoJ;Y>^k8dC{D_
-zhbwKe@*;<4J-OO!-C%rlS(oa6_x$V4eg0J-=$`-Tp8x8e|GL@Ee|>r8AOHI1>#x85
-z_PhUl_w84w?fUX>XU_cn%$YM^eDT-6e17`RfBN*(Pd__-`m@i=X7T^+e$T)ZEC6}_
-z88Q$rgItZ}7aHCzTiEbp(1l+2-g~!e?9DEB$BrGCZDGd8mj&^)5qtJ<q_x-PS=#xt
-zqutLl4^j#`^I&bPc0HPNXv<~04ed2zzpa<U`gs>A1r0H!612#)*`*G8XsxFgf<PMJ
-zx=1w;VZ`yDX*&PJ?Z37BT7GfhxfMen*dLoeGvCjDoB0}Z!Fu0!mnR;w{WkEiQ$JKp
-z9QAO(5%YcZ?Hp#PRo8e%qKV5r=_QVG>4UfF1G?Y@JaEzuct{>yf&;?-MiVaq<>U|N
-zpEUF^0Qd``wfeU+@LGV|*gwv`<gG_#^CuAaoF^84cI-jp44-6}6X*jCx?%ww$`K<f
-zQ;ynk(hYCg5MPeaTKiq!Y0DY)<1TW^1fU4}d-`zx&6l5!f7^aC0cd`#{))3N*?y#e
-za-hBa+;<oZV%_889J;`8U?_-vuRtIa#0iJO2d<q7hS+Ek59WmvT6qf-IQGM|IAyO0
-z=#&=O{sEkSh~qCt0I~k%^21U913z*AXI<ie@PN<xW8fKiz~PqdJ=rhF1q1+(K?nln
-zxgXC2^$#5BPUHj22M2<-dRS+5aKig?!YRW6-q#!v_G9`tFlB}kfXgpXfK%XxP2j*{
-z_h}x``7g1cwjIHPMua}x7ZoxI;DpSDU_<l4LAe0!lO@7o=L2U0kwMi9oZ4YxX;9$$
-zBK1**1z&Hr_@RP^><IHjvLB}(Z~`O%;Cr9(@eRfRRs-S;OymF^U=V0M|794^u$K;y
-z2RsjQJqQ@M56lHG_-4oEm`4c&=R}kTAKcOjuh|MGz!1AVBZfHeLYBmuTcx6Ssf@qe
-z=)(`g{+>Pzf58AwfM$Pr1TrN6@b4VRB52Dl?YegF_9CdI4oChe@-fu4$j1`L1AkbB
-zK(#=@=N#8<KWYP9+V5)(-)R5`0fe;WG;*|UcO3uVic^5Vx|^<`Gsu%D8#@2-zT4k7
-zfXO#D|6F|w`<i%T=5Nri9ejDf4ELa;__6X=w;V`zTjW)$UOxOI!nb74``lzDwssci
-z;|erm-Ey>npmzq0?1!ahq|;y+i4#A@g~kOjNFXP;{k`0M;`ryV4nUg#u;_;X0`?>I
-zo%^`kGyPMFpC=UdeM<NW=XttUvK{q5LSBz}HQv?4Piy^rw!u;FENHP#p@v3^tL}-w
-zKlqOr;2E&;{15XV{1-J)K8WM5sRGCiJEI0-$Ki0$YEwzjF8gy4i0t?DM<ocSL>@#M
-z_!1*%;JB@G0S>AI5~6azk4Lwxy?wOgd|)|Hv!5qGaRyoizz%@<(#J|*KK+<VpmeZ=
-zaQ1*n;gSXn4=#su32-Jj6inbnAj6`d0?{Df#ahcVB&CS?0PoESZ@#Gv!8>6C@0<x-
-zDIinef^5G5Kn~!G0G6-N8F+R9f`GRHRsymJAQi9^$Q~dI?%}@>VVuA!XerUb2c8$H
-z4kkKu5F9xYsd3b6L8=DFj@5neS~#KZgX9Eb!;nk){143^L;~;#u<Y03&z9fX`QL6b
-z5Pgs@e;op;24)dZ?mLA7t~`?z3ON{MFcN_aJ_CYjLY9T(gUE#JgM@>iN~;LsO7nv2
-z11RQP6w(<eFOWI@w0|m&|AhUD|5}f~`oOJJfn0h<CqxyPM3AunyFph$r3^9$xC|&9
-zkd8LE9!w4h7es%g<)#C{)nP7*JmlfRAe<1CkT?NOh<tFxsD!B4KUwxW0haK`=9}R+
-z^HBzz0<8`5ZLezpY<da*N+(c8zovoO1wUj^vc1p)btX(ycs%idlc9HwOoXu9`UNsU
-z5(O3ef&Upg0Jl&wAfNrA5MU=9F9l*Lgb&yV+z$vO5-3=}Xuz0|+5nd+A{WE_cLa2W
-z96lIin3*8aVVgWKZEVUY@3w;vyf7q<Sg8%66zPs^f1{_jZ*VdX0PqA14}sVj5Htd0
-z0ni|iL7ErT50VOt6A&%ifAT@J#>9jdMt4RiWAK8sLd;6&lkAe@lhP@X8*G`PRO%d5
-z&W|?UiP?&~$UT(oNA@H6nf=7S&j4h&EEfT!M%XFP`hds+>LEY&MGjCNn9Vu(HV#nS
-zy$ebSa41#5&;dytkp-a@a~jCdWTPsh9sG#eh>t;wvNvc!auQlH(L=Jo(Kmp@kDx!q
-zew6i(M*uzYfPW6XH3D@HC<RmqsR_%l8xzn4tN{vkj&U@?;{C9@2y4Y?@Lr_9OfKI=
-ze^5BUj=q5!aYbI>BU=Z*;Eim*)xR0DfPS8R(-|l@0q|!Lz!4zGfP{Z91PT8n0u}>R
-z12sin4pa|}6N40m2B*X<ldW6eY#;<du7@!!D+^*kA{WMZ5kbu@E~MQtr6=f$Z2$Fn
-z?-e|)oBgd>`A_k1P__1j|DOHi>^FG(<m|_1f9tnz@D<*wQN8n=-TwK#-F|m2Zt<1)
-zXx~@;=}Y~L&yUZIw|IW`*~jO3e(`Mhk$?S_2A?mVo4ud*J%4j~%g?d=+48>qborJ1
-zGu?Za>VcE}C;Rz-F<t02TKtp7qs`Ig^5!^hTXo~-*ZOvB@Io!QHs5zQ{*TM+`TFW2
-Juy8Hy_#cR!TMGaH
-
-literal 0
-HcmV?d00001
-
 diff --git a/target/linux/msm89xx/base-files/sbin/msm-firmware-loader.sh b/target/linux/msm89xx/base-files/sbin/msm-firmware-loader.sh
 new file mode 100755
 index 0000000..bb21ff1

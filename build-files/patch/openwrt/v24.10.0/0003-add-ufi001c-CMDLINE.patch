@@ -1,7 +1,7 @@
 From 7fe239c843e3db6506c1343421d494cc8992288a Mon Sep 17 00:00:00 2001
 From: a520a <a520ass@hotmail.com>
 Date: Mon, 20 Jan 2025 17:20:34 +0800
-Subject: [PATCH 3/5] up
+Subject: [PATCH 3/5] add ufi001c CMDLINE
 
 ---
  target/linux/msm89xx/image/msm8916.mk | 3 ++-

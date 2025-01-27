@@ -1,0 +1,27 @@
+From d4dbbbc9f6cb520173b394daaa5c816ae32583c1 Mon Sep 17 00:00:00 2001
+From: a520a <a520ass@hotmail.com>
+Date: Mon, 27 Jan 2025 09:06:28 +0800
+Subject: [PATCH] update find_md5
+
+---
+ include/depends.mk | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/include/depends.mk b/include/depends.mk
+index a858d4b..7821790 100644
+--- a/include/depends.mk
++++ b/include/depends.mk
+@@ -11,7 +11,9 @@
+ 
+ DEP_FINDPARAMS := -x "*/.svn*" -x ".*" -x "*:*" -x "*\!*" -x "* *" -x "*\\\#*" -x "*/.*_check" -x "*/.*.swp" -x "*/.pkgdir*"
+ 
+-find_md5=find $(wildcard $(1)) -type f $(patsubst -x,-and -not -path,$(DEP_FINDPARAMS) $(2)) -printf "%p%T@\n" | sort | $(MKHASH) md5
++#find_md5=find $(wildcard $(1)) -type f $(patsubst -x,-and -not -path,$(DEP_FINDPARAMS) $(2)) -printf "%p%T@\n" | sort | $(MKHASH) md5
++# hack 默认通过文件md5判断，而不是通过时间辍
++find_md5=find $(wildcard $(1)) -type f $(patsubst -x,-and -not -path,$(DEP_FINDPARAMS) $(2)) -print0 | xargs -0 $(MKHASH) md5 | sort | $(MKHASH) md5
+ find_md5_reproducible=find $(wildcard $(1)) -type f $(patsubst -x,-and -not -path,$(DEP_FINDPARAMS) $(2)) -print0 | xargs -0 $(MKHASH) md5 | sort | $(MKHASH) md5
+ 
+ define rdep
+-- 
+2.43.0
+
