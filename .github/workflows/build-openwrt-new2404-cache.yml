@@ -93,6 +93,14 @@ jobs:
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P1_SH ${{ env.PATCH_VERSION }}
 
+      - name: Restore cached 
+        id: cache-openwrt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            openwrt
+          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}
+
       - name: Update feeds
         run: cd openwrt && ./scripts/feeds update -a
 
@@ -123,15 +131,6 @@ jobs:
           find dl -size -1024c -exec ls -l {} \;
           find dl -size -1024c -exec rm -f {} \;
 
-      - name: Restore cached 
-        id: cache-openwrt-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            openwrt/build_dir
-            openwrt/staging_dir
-          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}
-
       - name: Compile the firmware
         id: compile
         run: |
@@ -152,11 +151,10 @@ jobs:
       - name: Save cached 
         id: cache-openwrt-save
         uses: actions/cache/save@v4
-        if: steps.compile.outputs.status == 'success' && !cancelled()
+        if: steps.cache-openwrt-restore.outputs.cache-hit != 'true' && steps.compile.outputs.status == 'success' && !cancelled()
         with:
           path: |
-            openwrt/build_dir
-            openwrt/staging_dir
+            openwrt
           key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}
 
       - name: targz build dir
