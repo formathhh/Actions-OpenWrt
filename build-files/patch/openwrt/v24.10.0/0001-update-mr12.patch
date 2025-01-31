@@ -1,0 +1,102 @@
+From bd2a4c194b41d4ef613e9aecd81e7187e4424cf0 Mon Sep 17 00:00:00 2001
+From: a520a <a520ass@hotmail.com>
+Date: Fri, 31 Jan 2025 20:18:11 +0800
+Subject: [PATCH] update mr12
+
+---
+ target/linux/ath79/dts/ar7242_meraki_mr12.dts | 43 +++++--------------
+ 1 file changed, 10 insertions(+), 33 deletions(-)
+
+diff --git a/target/linux/ath79/dts/ar7242_meraki_mr12.dts b/target/linux/ath79/dts/ar7242_meraki_mr12.dts
+index 2ab6f8aaf3..9c8dbfd736 100644
+--- a/target/linux/ath79/dts/ar7242_meraki_mr12.dts
++++ b/target/linux/ath79/dts/ar7242_meraki_mr12.dts
+@@ -11,32 +11,16 @@
+ 	model = "Meraki MR12";
+ 
+ 	aliases {
+-		led-boot = &led_power_orange;
+-		led-failsafe = &led_power_orange;
++		led-boot = &led_power_green;
++		led-failsafe = &led_power_green;
+ 		led-running = &led_power_green;
+-		led-upgrade = &led_power_orange;
++		led-upgrade = &led_power_green;
+ 	};
+ 
+ 	leds {
+ 		compatible = "gpio-leds";
+-
+-		link1 {
+-			label = "green:link1";
+-			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+-		};
+-
+-		link2 {
+-			label = "green:link2";
+-			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
+-		};
+-
+-		link3 {
+-			label = "green:link3";
+-			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+-		};
+-
+-		link4 {
+-			label = "green:link4";
++		wlan {
++			label = "green:wlan";
+ 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+ 		};
+ 
+@@ -46,17 +30,10 @@
+ 			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+ 		};
+ 
+-		led_power_orange: power_orange {
+-			function = LED_FUNCTION_POWER;
+-			color = <LED_COLOR_ID_ORANGE>;
+-			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+-			panic-indicator;
+-		};
+-
+ 		led_power_green: power_green {
+ 			function = LED_FUNCTION_POWER;
+ 			color = <LED_COLOR_ID_GREEN>;
+-			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
++			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+ 		};
+ 	};
+ 
+@@ -66,7 +43,7 @@
+ 		reset {
+ 			label = "reset";
+ 			linux,code = <KEY_RESTART>;
+-			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
++			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
+ 		};
+ 	};
+ };
+@@ -86,8 +63,8 @@
+ &mdio0 {
+ 	status = "okay";
+ 
+-	phy4: ethernet-phy@4 {
+-		reg = <4>;
++	phy0: ethernet-phy@0 {
++		reg = <0>;
+ 	};
+ };
+ 
+@@ -100,7 +77,7 @@
+ 	pll-data = <0x02000000 0x00000101 0x00001313>;
+ 
+ 	phy-mode = "rgmii-id";
+-	phy-handle = <&phy4>;
++	phy-handle = <&phy0>;
+ };
+ 
+ &mdio1 {
+-- 
+2.34.1
+
