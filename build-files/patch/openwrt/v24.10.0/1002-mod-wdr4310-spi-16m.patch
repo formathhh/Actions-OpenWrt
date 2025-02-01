@@ -1,0 +1,46 @@
+From 79cffab0b7e70eecb2a28177e7535001e91e1704 Mon Sep 17 00:00:00 2001
+From: a520a <a520ass@hotmail.com>
+Date: Sat, 1 Feb 2025 17:47:51 +0800
+Subject: [PATCH] mod wdr4310 spi 16m
+
+---
+ target/linux/ath79/dts/ar9344_tplink_tl-wdrxxxx.dtsi | 6 +++---
+ target/linux/ath79/image/generic-tp-link.mk          | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/target/linux/ath79/dts/ar9344_tplink_tl-wdrxxxx.dtsi b/target/linux/ath79/dts/ar9344_tplink_tl-wdrxxxx.dtsi
+index 94bfef57f6..a3a2ce1ba9 100644
+--- a/target/linux/ath79/dts/ar9344_tplink_tl-wdrxxxx.dtsi
++++ b/target/linux/ath79/dts/ar9344_tplink_tl-wdrxxxx.dtsi
+@@ -100,12 +100,12 @@
+ 			partition@20000 {
+ 				compatible = "tplink,firmware";
+ 				label = "firmware";
+-				reg = <0x020000 0x7d0000>;
++				reg = <0x020000 0xfd0000>;
+ 			};
+ 
+-			partition@7f0000 {
++			partition@ff0000 {
+ 				label = "art";
+-				reg = <0x7f0000 0x010000>;
++				reg = <0xff0000 0x010000>;
+ 				read-only;
+ 
+ 				nvmem-layout {
+diff --git a/target/linux/ath79/image/generic-tp-link.mk b/target/linux/ath79/image/generic-tp-link.mk
+index 969b4f3309..e1c656bc05 100644
+--- a/target/linux/ath79/image/generic-tp-link.mk
++++ b/target/linux/ath79/image/generic-tp-link.mk
+@@ -720,7 +720,7 @@ endef
+ TARGET_DEVICES += tplink_tl-wdr4300-v1-il
+ 
+ define Device/tplink_tl-wdr4310-v1
+-  $(Device/tplink-8mlzma)
++  $(Device/tplink-16mlzma)
+   SOC := ar9344
+   DEVICE_MODEL := TL-WDR4310
+   DEVICE_VARIANT := v1
+-- 
+2.34.1
+
