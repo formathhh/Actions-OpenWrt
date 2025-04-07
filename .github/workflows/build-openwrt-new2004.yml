@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Build OpenWrt Use Ubuntu 2204
+name: Build OpenWrt Use Ubuntu 2004
 
 on:
   repository_dispatch:
