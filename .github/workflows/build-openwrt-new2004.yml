@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Build OpenWrt NEW
+name: Build OpenWrt Use Ubuntu 2204
 
 on:
   repository_dispatch:
@@ -35,13 +35,13 @@ on:
         required: true
         default: 'ath79.config'
       p1_sh:
-        description: 'DIY P1 SH'
-        required: true
-        default: 'diy-part1.sh'
-      p2_sh:
-        description: 'DIY P2 SH (OR PATCH)'
+        description: 'DIY P1 SH (OR PATCH SH)'
         required: true
         default: 'diy-patch.sh'
+      p2_sh:
+        description: 'DIY P2 SH'
+        required: true
+        default: 'diy-part2.sh'
 
 env:
   REPO_URL: ${{ inputs.repo_url }}
@@ -53,8 +53,7 @@ env:
   DIY_P2_SH: ${{ inputs.p2_sh }}
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
-  UPLOAD_COWTRANSFER: false
-  UPLOAD_WETRANSFER: true
+  UPLOAD_WSS: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
 
@@ -89,6 +88,7 @@ jobs:
       - name: Load custom feeds
         run: |
           [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+          [ -e build-files ] && mv build-files openwrt/build-files
           chmod +x $DIY_P1_SH
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P1_SH ${{ env.PATCH_VERSION }}
@@ -101,7 +101,7 @@ jobs:
 
       - name: Load custom configuration
         run: |
-          [ -e build-files ] && mv build-files openwrt/build-files
+          [ -e files ] && mv files openwrt/files
           [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
           chmod +x $DIY_P2_SH
           cd openwrt
@@ -160,23 +160,14 @@ jobs:
           name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
           path: ${{ env.FIRMWARE }}
 
-      - name: Upload firmware to cowtransfer
-        id: cowtransfer
-        if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+      - name: Upload firmware to Wenshushu
+        id: wenshushu
+        if: steps.organize.outputs.status == 'success' && env.UPLOAD_WSS == 'true' && !cancelled()
         run: |
           curl -fsSL git.io/file-transfer | sh
-          ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
-          echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
-          echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
-
-      - name: Upload firmware to WeTransfer
-        id: wetransfer
-        if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
-        run: |
-          curl -fsSL git.io/file-transfer | sh
-          ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
-          echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
-          echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
+          ./transfer wss -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wenshushu.log
+          echo "::warning file=wenshushu.com::$(cat wenshushu.log | grep https)"
+          echo "::set-output name=url::$(cat wenshushu.log | grep Download | grep https | cut -f3 -d" ")"
 
       - name: Generate release tag
         id: tag
@@ -184,8 +175,7 @@ jobs:
         run: |
           echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
           touch release.txt
-          [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
-          [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
+          [ $UPLOAD_WSS = true ] && echo "🔗 [Wenshushu](${{ steps.wenshushu.outputs.url }})" >> release.txt
           env >> release.txt
           echo "::set-output name=status::success"
 
