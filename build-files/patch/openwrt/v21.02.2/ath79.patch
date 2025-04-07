@@ -4,7 +4,6 @@ Date: Tue, 8 Mar 2022 13:20:37 +0800
 Subject: [PATCH] ath79
 
 ---
- feeds.conf.default                            |   1 +
  .../dts/ar7240_tplink_tl-wr941n-v5-cn.dts     | 176 ++++++++++++++
  target/linux/ath79/dts/ar7242_meraki_mr12.dts |  89 +++----
  .../ath79/dts/ar9331_mercury_mw150r-v10.dts   | 169 +++++++++++++
@@ -23,16 +22,6 @@ Subject: [PATCH] ath79
  create mode 100644 target/linux/ath79/dts/qca9558_netgear_jnr3300-v1.dts
  create mode 100644 target/linux/ath79/dts/tp9343_tplink_tl-wr886n-v2.dts
 
-diff --git a/feeds.conf.default b/feeds.conf.default
-index 3dfca3a7df..f2c79bdeda 100644
---- a/feeds.conf.default
-+++ b/feeds.conf.default
-@@ -1,4 +1,5 @@
- src-git packages https://git.openwrt.org/feed/packages.git^b0ccc356900f6e1e1dc613d0ea980d5572f553dd
- src-git luci https://git.openwrt.org/project/luci.git^cc582ebfb3cb2782db841ad2a4e908d1df4046f9
-+src-git third https://gitee.com/a520ass/openwrt-third-packages.git
- src-git routing https://git.openwrt.org/feed/routing.git^10d3ffd8b30186b49538167bac1fa1bf9c88f860
- src-git telephony https://git.openwrt.org/feed/telephony.git^001ae7137c88bb679284bfac5087cde65b5abf9a
 diff --git a/target/linux/ath79/dts/ar7240_tplink_tl-wr941n-v5-cn.dts b/target/linux/ath79/dts/ar7240_tplink_tl-wr941n-v5-cn.dts
 new file mode 100644
 index 0000000000..1afa296e41
