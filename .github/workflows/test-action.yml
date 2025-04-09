@@ -37,6 +37,7 @@ jobs:
         working-directory: /workdir
         run: |
           df -hT
+          id
 
       - name: start frpc
         uses: a520ass/frpc_action@main
