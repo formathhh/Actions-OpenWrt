@@ -6,6 +6,9 @@ on:
     inputs:
       users:
         type: string
+      frpc_run_daemon:
+        type: string
+        default: 'false'
       ssh:
         description: 'SSH connection to Actions'
         required: false
@@ -43,6 +46,7 @@ jobs:
         uses: a520ass/frpc_action@main
         with:
           users: ${{ inputs.users || github.actor }}
+          run_daemon: ${{ inputs.frpc_run_daemon }}
           authorized_keys: ${{ secrets.AUTHORIZED_KEYS }}
           host_key: ${{ secrets.HOST_KEY }}
           config: ${{ secrets.FRPC_SERVER_CONF }}
