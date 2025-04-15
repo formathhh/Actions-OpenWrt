@@ -37,7 +37,7 @@ env:
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: ${{ inputs.config_file }}
   ENTWARE_PREFIX: ${{ inputs.entware_prefix }}
-  UPLOAD_BIN_DIR: false
+  UPLOAD_BIN_DIR: true
   UPLOAD_FIRMWARE: true
   UPLOAD_WSS: true
   UPLOAD_RELEASE: true
@@ -81,7 +81,7 @@ jobs:
           cd -
           [ -e $CONFIG_FILE ] && mv $CONFIG_FILE Entware/.config
           cd Entware
-          grep '/opt' -rl . | xargs sed -i "s|/opt\>|${ENTWARE_PREFIX}|g"
+          grep '/opt' -rl --exclude-dir=".git" . | xargs sed -i "s|/opt\>|${ENTWARE_PREFIX}|g"
 
       - name: SSH connection to Actions
         uses: P3TERX/ssh2actions@v1.0.0
