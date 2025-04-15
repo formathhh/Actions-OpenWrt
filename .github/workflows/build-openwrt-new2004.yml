@@ -177,7 +177,6 @@ jobs:
           touch release.txt
           [ $UPLOAD_WSS = true ] && echo "🔗 [Wenshushu](${{ steps.wenshushu.outputs.url }})" >> release.txt
           echo "自定义构建参数" >> release.txt
-          echo "==============" >> release.txt
           echo "REPO_URL: $REPO_URL" >> release.txt
           echo "REPO_BRANCH: $REPO_BRANCH" >> release.txt
           echo "PATCH_VERSION: $PATCH_VERSION" >> release.txt
