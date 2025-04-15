@@ -119,6 +119,24 @@ jobs:
           name: Entware_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
           path: Entware/bin
 
+      - name: Organize files
+        id: organize
+        if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+        run: |
+          cd Entware
+          tar -czf bin.tar.gz bin
+          echo "FIRMWARE=$PWD/bin.tar.gz" >> $GITHUB_ENV
+          echo "::set-output name=status::success"
+
+      - name: Upload firmware to Wenshushu
+        id: wenshushu
+        if: steps.organize.outputs.status == 'success' && env.UPLOAD_WSS == 'true' && !cancelled()
+        run: |
+          curl -fsSL git.io/file-transfer | sh
+          ./transfer wss -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wenshushu.log
+          echo "::warning file=wenshushu.com::$(cat wenshushu.log | grep https)"
+          echo "::set-output name=url::$(cat wenshushu.log | grep Download | grep https | cut -f3 -d" ")"
+
       - name: Generate release tag
         id: tag
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
