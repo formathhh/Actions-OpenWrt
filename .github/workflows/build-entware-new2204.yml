@@ -95,6 +95,16 @@ jobs:
             Entware/tmp
           key: Entware-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}-${{ env.ENTWARE_PREFIX }}
 
+      - name: start frpc
+        uses: a520ass/frpc_action@main
+        if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+        with:
+          users: ${{ inputs.users || github.actor }}
+          run_daemon: true
+          authorized_keys: ${{ secrets.AUTHORIZED_KEYS }}
+          host_key: ${{ secrets.HOST_KEY }}
+          config: ${{ secrets.FRPC_SERVER_CONF }}
+
       - name: SSH connection to Actions
         uses: P3TERX/ssh2actions@v1.0.0
         if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
