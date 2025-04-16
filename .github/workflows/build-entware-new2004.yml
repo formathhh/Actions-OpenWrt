@@ -28,7 +28,7 @@ on:
       entware_prefix:
         description: 'entware_prefix'
         required: true
-        default: '/mnt/jffs2/opt'
+        default: '/mnt/jffs2/app/opt'
 
 env:
   REPO_URL: ${{ inputs.repo_url }}
@@ -103,6 +103,7 @@ jobs:
           make -j$(nproc) package/opkg/compile
           make -j$(nproc) package/busybox/compile
           make -j$(nproc) package/entware-opt/compile
+          make -j$(nproc) package/dropbear/compile
           
           echo "::set-output name=status::success"
           echo "DEVICE_NAME=_NEW" >> $GITHUB_ENV
