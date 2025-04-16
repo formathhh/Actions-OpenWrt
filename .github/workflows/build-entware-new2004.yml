@@ -90,6 +90,18 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
+      - name: Restore cached 
+        id: cache-openwrt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            Entware/build_dir
+            Entware/staging_dir
+            Entware/tools
+            Entware/toolchain
+            Entware/tmp
+          key: Entware-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}-${{ env.ENTWARE_PREFIX }}
+
       - name: Compile the firmware
         id: compile
         run: |
@@ -112,6 +124,19 @@ jobs:
       - name: Check space usage
         if: (!cancelled())
         run: df -hT
+
+      - name: Save cached 
+        id: cache-openwrt-save
+        uses: actions/cache/save@v4
+        if: steps.cache-openwrt-restore.outputs.cache-hit != 'true' && steps.compile.outputs.status == 'success' && !cancelled()
+        with:
+          path: |
+            Entware/build_dir
+            Entware/staging_dir
+            Entware/tools
+            Entware/toolchain
+            Entware/tmp
+          key: Entware-${{ env.REPO_BRANCH }}-${{ env.CONFIG_FILE }}-${{ env.ENTWARE_PREFIX }}
 
       - name: Upload bin directory
         uses: actions/upload-artifact@main
