@@ -1,4 +1,4 @@
-name: Build OpenWrt Use Ubuntu 2204
+name: Build ath79-16m2025
 
 on:
   repository_dispatch:
